@@ -1,7 +1,16 @@
+const mongoose = require('mongoose');
 const Task = require('../models/Task');
 
 const ALLOWED_STATUSES = ['todo', 'in_progress', 'completed', 'cancelled'];
 const ALLOWED_PRIORITIES = ['low', 'medium', 'high', 'urgent'];
+const ALLOWED_UPDATE_FIELDS = ['title', 'description', 'dueDate', 'estimatedMinutes', 'actualMinutes', 'status', 'priority', 'tags', 'pomodoroSessions'];
+
+/** Pick only allowed fields from an update payload. */
+const sanitizeUpdate = (data) =>
+  ALLOWED_UPDATE_FIELDS.reduce((acc, key) => {
+    if (key in data) acc[key] = data[key];
+    return acc;
+  }, {});
 
 const create = async (userId, data) => {
   return Task.create({ ...data, user: userId });
@@ -12,7 +21,9 @@ const getAll = async (userId, filters = {}) => {
 
   if (filters.status && ALLOWED_STATUSES.includes(filters.status)) query.status = filters.status;
   if (filters.priority && ALLOWED_PRIORITIES.includes(filters.priority)) query.priority = filters.priority;
-  if (filters.studyPlan) query.studyPlan = filters.studyPlan;
+  if (filters.studyPlan && mongoose.Types.ObjectId.isValid(filters.studyPlan)) {
+    query.studyPlan = new mongoose.Types.ObjectId(filters.studyPlan);
+  }
   if (filters.dueDate) {
     const d = new Date(filters.dueDate);
     query.dueDate = { $lte: new Date(d.setDate(d.getDate() + 1)) };
@@ -37,7 +48,7 @@ const getById = async (userId, taskId) => {
 const update = async (userId, taskId, data) => {
   const task = await Task.findOneAndUpdate(
     { _id: taskId, user: userId },
-    data,
+    sanitizeUpdate(data),
     { new: true, runValidators: true }
   );
   if (!task) {

@@ -47,7 +47,7 @@ export default function HomePage() {
               icon: '🤖',
               title: 'AI-Generated Plans',
               description:
-                'Let GPT create a personalised study roadmap based on your goals and schedule.',
+                'Let GPT create a personalized study roadmap based on your goals and schedule.',
             },
             {
               icon: '⏱️',
@@ -59,7 +59,7 @@ export default function HomePage() {
               icon: '📊',
               title: 'Productivity Analytics',
               description:
-                'Visualise your progress with daily activity charts and subject breakdowns.',
+                'Visualize your progress with daily activity charts and subject breakdowns.',
             },
           ].map((f) => (
             <div key={f.title} className="card">

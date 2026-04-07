@@ -1,9 +1,18 @@
+const mongoose = require('mongoose');
 const StudyPlan = require('../models/StudyPlan');
 
 const ALLOWED_STATUSES = ['active', 'paused', 'completed', 'archived'];
+const ALLOWED_UPDATE_FIELDS = ['title', 'subject', 'description', 'startDate', 'endDate', 'targetHours', 'status', 'priority', 'tags', 'color', 'aiSuggestions'];
 
 /** Escape special regex characters from user input. */
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Pick only allowed fields from an update payload. */
+const sanitizeUpdate = (data) =>
+  ALLOWED_UPDATE_FIELDS.reduce((acc, key) => {
+    if (key in data) acc[key] = data[key];
+    return acc;
+  }, {});
 
 const create = async (userId, data) => {
   return StudyPlan.create({ ...data, user: userId });
@@ -31,7 +40,7 @@ const getById = async (userId, planId) => {
 const update = async (userId, planId, data) => {
   const plan = await StudyPlan.findOneAndUpdate(
     { _id: planId, user: userId },
-    data,
+    sanitizeUpdate(data),
     { new: true, runValidators: true }
   );
   if (!plan) {

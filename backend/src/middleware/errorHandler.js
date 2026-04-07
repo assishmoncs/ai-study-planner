@@ -1,6 +1,6 @@
 const { sendError } = require('../utils/responseHelper');
 
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars is not needed – _next prefix signals intentionally unused
 const errorHandler = (err, req, res, _next) => {
   console.error(err);
 
