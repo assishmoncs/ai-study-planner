@@ -5,7 +5,7 @@ const { signAccessToken } = require('../utils/jwtUtils');
  * Register a new user.
  */
 const register = async ({ name, email, password }) => {
-  const existing = await User.findOne({ email });
+  const existing = await User.findOne({ email: String(email) });
   if (existing) {
     const error = new Error('Email is already registered');
     error.statusCode = 409;
@@ -22,7 +22,7 @@ const register = async ({ name, email, password }) => {
  * Authenticate an existing user.
  */
 const login = async ({ email, password }) => {
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email: String(email) }).select('+password');
   if (!user || !(await user.comparePassword(password))) {
     const error = new Error('Invalid email or password');
     error.statusCode = 401;

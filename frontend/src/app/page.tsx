@@ -27,7 +27,7 @@ export default function HomePage() {
           AI Study Planner
         </h1>
         <p className="text-xl text-slate-600 mb-10 max-w-xl mx-auto">
-          Your AI-powered companion for personalised study plans, task management,
+          Your AI-powered companion for personalized study plans, task management,
           and productivity insights.
         </p>
 

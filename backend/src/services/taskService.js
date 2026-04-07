@@ -1,5 +1,8 @@
 const Task = require('../models/Task');
 
+const ALLOWED_STATUSES = ['todo', 'in_progress', 'completed', 'cancelled'];
+const ALLOWED_PRIORITIES = ['low', 'medium', 'high', 'urgent'];
+
 const create = async (userId, data) => {
   return Task.create({ ...data, user: userId });
 };
@@ -7,8 +10,8 @@ const create = async (userId, data) => {
 const getAll = async (userId, filters = {}) => {
   const query = { user: userId };
 
-  if (filters.status) query.status = filters.status;
-  if (filters.priority) query.priority = filters.priority;
+  if (filters.status && ALLOWED_STATUSES.includes(filters.status)) query.status = filters.status;
+  if (filters.priority && ALLOWED_PRIORITIES.includes(filters.priority)) query.priority = filters.priority;
   if (filters.studyPlan) query.studyPlan = filters.studyPlan;
   if (filters.dueDate) {
     const d = new Date(filters.dueDate);

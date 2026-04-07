@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Task = require('../models/Task');
 const StudyPlan = require('../models/StudyPlan');
 
@@ -5,9 +6,10 @@ const StudyPlan = require('../models/StudyPlan');
  * Aggregate productivity stats for the authenticated user.
  */
 const getSummary = async (userId) => {
+  const oid = new mongoose.Types.ObjectId(userId);
   const [taskStats, planStats] = await Promise.all([
     Task.aggregate([
-      { $match: { user: userId } },
+      { $match: { user: oid } },
       {
         $group: {
           _id: '$status',
@@ -17,7 +19,7 @@ const getSummary = async (userId) => {
       },
     ]),
     StudyPlan.aggregate([
-      { $match: { user: userId } },
+      { $match: { user: oid } },
       {
         $group: {
           _id: '$status',
@@ -36,13 +38,14 @@ const getSummary = async (userId) => {
  * Return daily study time for the last N days.
  */
 const getDailyActivity = async (userId, days = 30) => {
+  const oid = new mongoose.Types.ObjectId(userId);
   const since = new Date();
   since.setDate(since.getDate() - days);
 
   const activity = await Task.aggregate([
     {
       $match: {
-        user: userId,
+        user: oid,
         status: 'completed',
         completedAt: { $gte: since },
       },
@@ -66,8 +69,9 @@ const getDailyActivity = async (userId, days = 30) => {
  * Return per-subject breakdown.
  */
 const getSubjectBreakdown = async (userId) => {
+  const oid = new mongoose.Types.ObjectId(userId);
   return StudyPlan.aggregate([
-    { $match: { user: userId } },
+    { $match: { user: oid } },
     {
       $group: {
         _id: '$subject',

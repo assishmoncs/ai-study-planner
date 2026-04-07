@@ -1,5 +1,10 @@
 const StudyPlan = require('../models/StudyPlan');
 
+const ALLOWED_STATUSES = ['active', 'paused', 'completed', 'archived'];
+
+/** Escape special regex characters from user input. */
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const create = async (userId, data) => {
   return StudyPlan.create({ ...data, user: userId });
 };
@@ -7,8 +12,8 @@ const create = async (userId, data) => {
 const getAll = async (userId, filters = {}) => {
   const query = { user: userId };
 
-  if (filters.status) query.status = filters.status;
-  if (filters.subject) query.subject = new RegExp(filters.subject, 'i');
+  if (filters.status && ALLOWED_STATUSES.includes(filters.status)) query.status = filters.status;
+  if (filters.subject) query.subject = new RegExp(escapeRegex(String(filters.subject)), 'i');
 
   return StudyPlan.find(query).sort({ createdAt: -1 });
 };

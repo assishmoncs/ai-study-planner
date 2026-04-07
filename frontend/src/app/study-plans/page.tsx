@@ -25,7 +25,7 @@ export default function StudyPlansPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Study Plans</h1>
-          <p className="text-slate-500 text-sm mt-1">Organise your learning goals</p>
+          <p className="text-slate-500 text-sm mt-1">Organize your learning goals</p>
         </div>
         <button className="btn-primary" onClick={() => setShowModal(true)}>
           + New Plan
