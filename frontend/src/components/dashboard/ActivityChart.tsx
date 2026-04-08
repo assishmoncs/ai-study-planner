@@ -1,4 +1,5 @@
 'use client';
+import { useTheme } from '@/components/layout/ThemeProvider';
 import {
   AreaChart,
   Area,
@@ -21,17 +22,27 @@ interface ActivityChartProps {
 }
 
 export default function ActivityChart({ data, title = 'Daily Activity (last 30 days)' }: ActivityChartProps) {
+  const { isDark } = useTheme();
   const formatted = data.map((d) => ({
     date: d._id,
     tasks: d.tasksCompleted,
     minutes: d.minutesStudied,
   }));
 
+  const tickColor = isDark ? '#94a3b8' : '#64748b';
+  const gridColor = isDark ? '#334155' : '#cbd5e1';
+  const tooltipStyle = {
+    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+    borderColor: isDark ? '#334155' : '#cbd5e1',
+    borderRadius: '12px',
+    color: isDark ? '#e2e8f0' : '#0f172a',
+  };
+
   return (
     <div className="card">
-      <h2 className="text-base font-semibold text-slate-800 mb-4">{title}</h2>
+      <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-4">{title}</h2>
       {formatted.length === 0 ? (
-        <div className="h-48 flex items-center justify-center text-slate-400 text-sm">
+        <div className="h-48 flex items-center justify-center text-slate-400 dark:text-slate-500 text-sm">
           No activity data yet
         </div>
       ) : (
@@ -43,10 +54,11 @@ export default function ActivityChart({ data, title = 'Daily Activity (last 30 d
                 <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(v) => v.slice(5)} />
-            <YAxis tick={{ fontSize: 11 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+            <XAxis dataKey="date" tick={{ fontSize: 11, fill: tickColor }} tickFormatter={(v) => v.slice(5)} />
+            <YAxis tick={{ fontSize: 11, fill: tickColor }} />
             <Tooltip
+              contentStyle={tooltipStyle}
               formatter={(value: number, name: string) => [
                 name === 'minutes' ? `${value} min` : value,
                 name === 'minutes' ? 'Study time' : 'Tasks done',

@@ -28,10 +28,10 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-slate-500 text-sm mt-1">Your study overview at a glance</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Dashboard</h1>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Your study overview at a glance</p>
       </div>
 
       {/* Stats row */}

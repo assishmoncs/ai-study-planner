@@ -26,38 +26,38 @@ export default function CreateTaskModal({ onClose }: { onClose: () => void }) {
   });
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-slate-900">New Task</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">New Task</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors duration-200">✕</button>
         </div>
 
         <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Title *</label>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Title *</label>
             <input className="input" {...register('title', { required: true })} placeholder="e.g. Read chapter 4" />
             {errors.title && <p className="text-red-500 text-xs mt-1">Required</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Description</label>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
             <textarea className="input resize-none" rows={2} {...register('description')} placeholder="Optional notes…" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Due Date</label>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Due Date</label>
               <input type="date" className="input" {...register('dueDate')} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Est. Minutes</label>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Est. Minutes</label>
               <input type="number" min="1" className="input" {...register('estimatedMinutes', { valueAsNumber: true })} />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Priority</label>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Priority</label>
             <select className="input" {...register('priority')}>
               <option value="low">Low</option>
               <option value="medium">Medium</option>

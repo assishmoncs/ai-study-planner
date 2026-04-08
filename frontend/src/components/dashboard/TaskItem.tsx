@@ -7,10 +7,10 @@ interface TaskItemProps {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  urgent: 'text-red-600',
-  high: 'text-orange-600',
-  medium: 'text-yellow-600',
-  low: 'text-green-600',
+  urgent: 'text-red-600 dark:text-red-400',
+  high: 'text-orange-600 dark:text-orange-400',
+  medium: 'text-yellow-600 dark:text-yellow-400',
+  low: 'text-green-600 dark:text-green-400',
 };
 
 export default function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
@@ -20,10 +20,10 @@ export default function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
     <div className="card flex items-center gap-4 py-4 px-5">
       <button
         onClick={onToggle}
-        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors duration-200 ${
           isCompleted
             ? 'bg-green-500 border-green-500 text-white'
-            : 'border-gray-300 hover:border-primary-500'
+            : 'border-slate-300 dark:border-slate-600 hover:border-primary-500'
         }`}
       >
         {isCompleted && (
@@ -34,17 +34,17 @@ export default function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
       </button>
 
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+        <p className={`text-sm font-medium ${isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'}`}>
           {task.title}
         </p>
         {task.dueDate && (
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
             Due {new Date(task.dueDate).toLocaleDateString()}
           </p>
         )}
       </div>
 
-      <span className={`text-xs font-medium shrink-0 ${PRIORITY_COLORS[task.priority] ?? 'text-gray-500'}`}>
+      <span className={`text-xs font-medium shrink-0 ${PRIORITY_COLORS[task.priority] ?? 'text-slate-500 dark:text-slate-400'}`}>
         {task.priority}
       </span>
 
