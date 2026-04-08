@@ -21,11 +21,11 @@ export default function StudyPlansPage() {
   });
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Study Plans</h1>
-          <p className="text-slate-500 text-sm mt-1">Organize your learning goals</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Study Plans</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Organize your learning goals</p>
         </div>
         <button className="btn-primary" onClick={() => setShowModal(true)}>
           + New Plan
@@ -35,7 +35,7 @@ export default function StudyPlansPage() {
       {isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="card h-40 animate-pulse bg-gray-100" />
+            <div key={i} className="card h-40 animate-pulse bg-slate-100 dark:bg-slate-800" />
           ))}
         </div>
       )}
@@ -43,8 +43,8 @@ export default function StudyPlansPage() {
       {!isLoading && (!data || data.length === 0) && (
         <div className="card text-center py-16">
           <p className="text-4xl mb-4">📚</p>
-          <p className="text-slate-600 font-medium">No study plans yet</p>
-          <p className="text-slate-400 text-sm mt-1">Create your first plan to get started</p>
+          <p className="text-slate-600 dark:text-slate-300 font-medium">No study plans yet</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Create your first plan to get started</p>
         </div>
       )}
 

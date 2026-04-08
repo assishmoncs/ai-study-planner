@@ -33,11 +33,11 @@ export default function TasksPage() {
   });
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Tasks</h1>
-          <p className="text-slate-500 text-sm mt-1">Manage your study tasks</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Tasks</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage your study tasks</p>
         </div>
         <button className="btn-primary" onClick={() => setShowModal(true)}>
           + New Task
@@ -50,10 +50,10 @@ export default function TasksPage() {
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 ${
               statusFilter === s
                 ? 'bg-primary-600 text-white'
-                : 'bg-white text-slate-600 border border-gray-200 hover:bg-gray-50'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/70'
             }`}
           >
             {s.replace('_', ' ')}
@@ -64,7 +64,7 @@ export default function TasksPage() {
       {isLoading && (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="card h-16 animate-pulse bg-gray-100" />
+            <div key={i} className="card h-16 animate-pulse bg-slate-100 dark:bg-slate-800" />
           ))}
         </div>
       )}
@@ -72,7 +72,7 @@ export default function TasksPage() {
       {!isLoading && (!data || data.length === 0) && (
         <div className="card text-center py-16">
           <p className="text-4xl mb-4">📋</p>
-          <p className="text-slate-600 font-medium">No tasks found</p>
+          <p className="text-slate-600 dark:text-slate-300 font-medium">No tasks found</p>
         </div>
       )}
 

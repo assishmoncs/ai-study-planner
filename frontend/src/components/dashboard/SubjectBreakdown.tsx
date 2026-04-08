@@ -18,9 +18,9 @@ export default function SubjectBreakdown({ data }: { data: SubjectEntry[] }) {
 
   return (
     <div className="card">
-      <h2 className="text-base font-semibold text-slate-800 mb-4">Subject Breakdown</h2>
+      <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-4">Subject Breakdown</h2>
       {chartData.length === 0 ? (
-        <div className="h-48 flex items-center justify-center text-slate-400 text-sm">
+        <div className="h-48 flex items-center justify-center text-slate-400 dark:text-slate-500 text-sm">
           No subjects yet
         </div>
       ) : (
