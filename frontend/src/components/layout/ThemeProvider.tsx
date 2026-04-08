@@ -24,11 +24,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem(STORAGE_KEY);
-    if (storedTheme === 'light' || storedTheme === 'dark') {
-      setThemeState(storedTheme);
-      applyTheme(storedTheme);
-      return;
+    try {
+      const storedTheme = localStorage.getItem(STORAGE_KEY);
+      if (storedTheme === 'light' || storedTheme === 'dark') {
+        setThemeState(storedTheme);
+        applyTheme(storedTheme);
+        return;
+      }
+    } catch {
+      // Ignore storage access errors and fallback to system preference.
     }
 
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -38,7 +42,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setTheme = useCallback((nextTheme: Theme) => {
     setThemeState(nextTheme);
-    localStorage.setItem(STORAGE_KEY, nextTheme);
+    try {
+      localStorage.setItem(STORAGE_KEY, nextTheme);
+    } catch {
+      // Ignore storage access errors so theme updates still apply in-memory.
+    }
     applyTheme(nextTheme);
   }, []);
 

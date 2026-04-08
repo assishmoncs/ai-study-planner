@@ -11,6 +11,10 @@ const NAV_ITEMS = [
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
+function isRouteActive(pathname: string, href: string) {
+  return href === '/dashboard' ? pathname === href : pathname.startsWith(href);
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
 
@@ -25,7 +29,7 @@ export default function Sidebar() {
 
       <nav className="flex-1 px-3 py-4 space-y-1.5">
         {NAV_ITEMS.map((item) => {
-          const active = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
+          const active = isRouteActive(pathname, item.href);
           const Icon = item.icon;
 
           return (

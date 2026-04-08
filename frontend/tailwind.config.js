@@ -26,9 +26,6 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
-      borderRadius: {
-        '2xl': '1rem',
-      },
       boxShadow: {
         card: '0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.04)',
       },

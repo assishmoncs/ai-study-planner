@@ -1,4 +1,5 @@
 'use client';
+import { useTheme } from '@/components/layout/ThemeProvider';
 import {
   AreaChart,
   Area,
@@ -21,14 +22,21 @@ interface ActivityChartProps {
 }
 
 export default function ActivityChart({ data, title = 'Daily Activity (last 30 days)' }: ActivityChartProps) {
+  const { isDark } = useTheme();
   const formatted = data.map((d) => ({
     date: d._id,
     tasks: d.tasksCompleted,
     minutes: d.minutesStudied,
   }));
 
-  const tickColor = '#64748b';
-  const gridColor = '#cbd5e1';
+  const tickColor = isDark ? '#94a3b8' : '#64748b';
+  const gridColor = isDark ? '#334155' : '#cbd5e1';
+  const tooltipStyle = {
+    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+    borderColor: isDark ? '#334155' : '#cbd5e1',
+    borderRadius: '12px',
+    color: isDark ? '#e2e8f0' : '#0f172a',
+  };
 
   return (
     <div className="card">
@@ -50,6 +58,7 @@ export default function ActivityChart({ data, title = 'Daily Activity (last 30 d
             <XAxis dataKey="date" tick={{ fontSize: 11, fill: tickColor }} tickFormatter={(v) => v.slice(5)} />
             <YAxis tick={{ fontSize: 11, fill: tickColor }} />
             <Tooltip
+              contentStyle={tooltipStyle}
               formatter={(value: number, name: string) => [
                 name === 'minutes' ? `${value} min` : value,
                 name === 'minutes' ? 'Study time' : 'Tasks done',
