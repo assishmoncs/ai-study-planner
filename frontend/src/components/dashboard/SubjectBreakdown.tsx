@@ -8,7 +8,7 @@ interface SubjectEntry {
   planCount: number;
 }
 
-const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+const COLORS = ['#2563eb', '#0f766e', '#7c3aed', '#d97706', '#059669', '#db2777'];
 
 export default function SubjectBreakdown({ data }: { data: SubjectEntry[] }) {
   const chartData = data.map((d) => ({
@@ -17,14 +17,14 @@ export default function SubjectBreakdown({ data }: { data: SubjectEntry[] }) {
   }));
 
   return (
-    <div className="card">
-      <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-4">Subject Breakdown</h2>
+    <div className="card overflow-hidden">
+      <h2 className="mb-4 text-base font-semibold text-slate-800 dark:text-slate-100">Subject Breakdown</h2>
       {chartData.length === 0 ? (
         <div className="h-48 flex items-center justify-center text-slate-400 dark:text-slate-500 text-sm">
           No subjects yet
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={260}>
           <PieChart>
             <Pie data={chartData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} dataKey="value">
               {chartData.map((_entry, index) => (

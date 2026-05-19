@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react';
 import type { StudyPlan } from '@/types';
 
 interface StudyPlanCardProps {
@@ -6,10 +7,10 @@ interface StudyPlanCardProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
-  paused: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
-  completed: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-  archived: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300',
+  active: 'bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900/60',
+  paused: 'bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900/60',
+  completed: 'bg-blue-50 text-blue-700 ring-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900/60',
+  archived: 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
 };
 
 export default function StudyPlanCard({ plan, onDelete }: StudyPlanCardProps) {
@@ -19,45 +20,48 @@ export default function StudyPlanCard({ plan, onDelete }: StudyPlanCardProps) {
 
   return (
     <div className="card hover:shadow-md transition-shadow duration-200">
-      <div className="h-1.5 rounded-full mb-4" style={{ backgroundColor: plan.color || '#6366f1' }} />
+      <div className="mb-4 h-1 rounded-full" style={{ backgroundColor: plan.color || '#2563eb' }} />
 
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div>
-          <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm leading-tight">{plan.title}</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{plan.subject}</p>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold leading-tight text-slate-950 dark:text-slate-100">
+            {plan.title}
+          </h3>
+          <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">{plan.subject}</p>
         </div>
         <span
-          className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${
+          className={`shrink-0 rounded-md px-2 py-1 text-xs font-medium capitalize ring-1 ${
             STATUS_COLORS[plan.status] ?? 'bg-gray-100 text-gray-600'
           }`}
         >
-          {plan.status}
+          {plan.status.replace('_', ' ')}
         </span>
       </div>
 
       <div className="mb-4">
-        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <div className="mb-2 flex justify-between text-xs text-slate-500 dark:text-slate-400">
           <span>{plan.completedHours}h done</span>
           <span>{plan.targetHours}h total</span>
         </div>
-        <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
           <div
             className="h-full rounded-full transition-all"
-            style={{ width: `${progress}%`, backgroundColor: plan.color || '#6366f1' }}
+            style={{ width: `${progress}%`, backgroundColor: plan.color || '#2563eb' }}
           />
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-right">{progress}%</p>
       </div>
 
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <span className="text-xs text-slate-400 dark:text-slate-500">
-          {new Date(plan.endDate).toLocaleDateString()}
+          Ends {new Date(plan.endDate).toLocaleDateString()}
         </span>
         <button
           onClick={onDelete}
-          className="text-xs text-red-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors duration-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+          aria-label={`Delete ${plan.title}`}
+          title="Delete plan"
         >
-          Delete
+          <Trash2 className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
     </div>

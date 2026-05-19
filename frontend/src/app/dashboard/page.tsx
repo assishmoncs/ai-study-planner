@@ -5,6 +5,7 @@ import StatCard from '@/components/dashboard/StatCard';
 import ActivityChart from '@/components/dashboard/ActivityChart';
 import SubjectBreakdown from '@/components/dashboard/SubjectBreakdown';
 import RecentTasks from '@/components/dashboard/RecentTasks';
+import { BookOpen, CheckCircle2, Clock3, ClipboardList } from 'lucide-react';
 
 export default function DashboardPage() {
   const { data: summary, isLoading: summaryLoading } = useQuery({
@@ -29,40 +30,41 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Dashboard</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Your study overview at a glance</p>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-3xl">
+          Dashboard
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Your study overview at a glance</p>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Tasks Pending"
-          value={summaryLoading ? '…' : String(
+          value={summaryLoading ? '...' : String(
             summary?.taskStats?.find((s: { _id: string }) => s._id === 'todo')?.count ?? 0
           )}
-          icon="📋"
+          icon={ClipboardList}
           color="blue"
         />
         <StatCard
           title="Tasks Completed"
-          value={summaryLoading ? '…' : String(
+          value={summaryLoading ? '...' : String(
             summary?.taskStats?.find((s: { _id: string }) => s._id === 'completed')?.count ?? 0
           )}
-          icon="✅"
+          icon={CheckCircle2}
           color="green"
         />
         <StatCard
           title="Active Plans"
-          value={summaryLoading ? '…' : String(
+          value={summaryLoading ? '...' : String(
             summary?.planStats?.find((s: { _id: string }) => s._id === 'active')?.count ?? 0
           )}
-          icon="📚"
-          color="purple"
+          icon={BookOpen}
+          color="violet"
         />
         <StatCard
           title="Hours Studied"
-          value={summaryLoading ? '…' : String(
+          value={summaryLoading ? '...' : String(
             Math.round(
               summary?.planStats?.reduce(
                 (acc: number, s: { totalCompletedHours: number }) => acc + s.totalCompletedHours,
@@ -70,22 +72,18 @@ export default function DashboardPage() {
               ) ?? 0
             )
           )}
-          icon="⏰"
-          color="orange"
+          icon={Clock3}
+          color="amber"
         />
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2">
           <ActivityChart data={activityData ?? []} />
         </div>
-        <div>
-          <SubjectBreakdown data={subjectsData ?? []} />
-        </div>
+        <SubjectBreakdown data={subjectsData ?? []} />
       </div>
 
-      {/* Recent tasks */}
       <RecentTasks tasks={tasksData ?? []} />
     </div>
   );

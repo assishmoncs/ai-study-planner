@@ -18,12 +18,14 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Analytics</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Insights into your productivity</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-3xl">
+          Analytics
+        </h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Insights into your productivity</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2">
           <ActivityChart data={activity ?? []} title="Last 90 Days Activity" />
         </div>
         <SubjectBreakdown data={subjects ?? []} />

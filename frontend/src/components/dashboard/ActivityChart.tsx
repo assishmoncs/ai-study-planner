@@ -39,14 +39,14 @@ export default function ActivityChart({ data, title = 'Daily Activity (last 30 d
   };
 
   return (
-    <div className="card">
-      <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-4">{title}</h2>
+    <div className="card overflow-hidden">
+      <h2 className="mb-4 text-base font-semibold text-slate-800 dark:text-slate-100">{title}</h2>
       {formatted.length === 0 ? (
         <div className="h-48 flex items-center justify-center text-slate-400 dark:text-slate-500 text-sm">
           No activity data yet
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={260}>
           <AreaChart data={formatted}>
             <defs>
               <linearGradient id="colorMinutes" x1="0" y1="0" x2="0" y2="1">
@@ -55,7 +55,12 @@ export default function ActivityChart({ data, title = 'Daily Activity (last 30 d
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: tickColor }} tickFormatter={(v) => v.slice(5)} />
+            <XAxis
+              dataKey="date"
+              minTickGap={24}
+              tick={{ fontSize: 11, fill: tickColor }}
+              tickFormatter={(v) => v.slice(5)}
+            />
             <YAxis tick={{ fontSize: 11, fill: tickColor }} />
             <Tooltip
               contentStyle={tooltipStyle}

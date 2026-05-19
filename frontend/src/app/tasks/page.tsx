@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Plus } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import TaskItem from '@/components/dashboard/TaskItem';
 import CreateTaskModal from '@/components/dashboard/CreateTaskModal';
@@ -34,26 +35,28 @@ export default function TasksPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Tasks</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage your study tasks</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-3xl">
+            Tasks
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Manage your study tasks</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
-          + New Task
+        <button className="btn-primary w-full sm:w-auto" onClick={() => setShowModal(true)}>
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          New Task
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-800 dark:bg-slate-950">
         {STATUS_FILTERS.map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 ${
+            className={`min-w-fit flex-1 rounded-md px-3 py-2 text-xs font-medium capitalize transition-colors duration-200 ${
               statusFilter === s
-                ? 'bg-primary-600 text-white'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/70'
+                ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950'
+                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
             }`}
           >
             {s.replace('_', ' ')}
@@ -70,9 +73,8 @@ export default function TasksPage() {
       )}
 
       {!isLoading && (!data || data.length === 0) && (
-        <div className="card text-center py-16">
-          <p className="text-4xl mb-4">📋</p>
-          <p className="text-slate-600 dark:text-slate-300 font-medium">No tasks found</p>
+        <div className="card py-16 text-center">
+          <p className="font-medium text-slate-700 dark:text-slate-200">No tasks found</p>
         </div>
       )}
 
