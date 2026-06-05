@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from '@/store/authStore';
 import { apiClient } from '@/lib/api';
+import { useToast } from '@/components/ui/Toaster';
 
 interface RegisterForm {
   name: string;
@@ -16,6 +17,7 @@ interface RegisterForm {
 export default function RegisterPage() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const { toast } = useToast();
   const [serverError, setServerError] = useState('');
 
   const {
@@ -33,7 +35,8 @@ export default function RegisterPage() {
         email: data.email,
         password: data.password,
       });
-      setAuth(res.data.data.user, res.data.data.token);
+      setAuth(res.data.data.user, res.data.data.accessToken);
+      toast({ title: 'Account created', description: 'Your study workspace is ready.', variant: 'success' });
       router.push('/dashboard');
     } catch (err: unknown) {
       const message =
@@ -41,6 +44,7 @@ export default function RegisterPage() {
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : undefined;
       setServerError(message || 'Registration failed. Please try again.');
+      toast({ title: 'Registration failed', description: message || 'Please try again.', variant: 'error' });
     }
   };
 

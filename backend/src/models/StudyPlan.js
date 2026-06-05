@@ -64,6 +64,10 @@ const studyPlanSchema = new mongoose.Schema(
     color: {
       type: String,
       default: '#6366f1',
+      validate: {
+        validator: (value) => /^#([0-9a-fA-F]{3}){1,2}$/.test(value),
+        message: 'Color must be a valid hex code',
+      },
     },
   },
   { timestamps: true }
@@ -76,5 +80,7 @@ studyPlanSchema.virtual('progressPercent').get(function () {
 
 studyPlanSchema.set('toJSON', { virtuals: true });
 studyPlanSchema.set('toObject', { virtuals: true });
+studyPlanSchema.index({ user: 1, status: 1, updatedAt: -1 });
+studyPlanSchema.index({ user: 1, subject: 1 });
 
 module.exports = mongoose.model('StudyPlan', studyPlanSchema);

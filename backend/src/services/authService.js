@@ -1,5 +1,10 @@
 const User = require('../models/User');
-const { signAccessToken } = require('../utils/jwtUtils');
+const {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+  hashToken,
+} = require('../utils/jwtUtils');
 
 /**
  * Register a new user.
@@ -13,24 +18,32 @@ const register = async ({ name, email, password }) => {
   }
 
   const user = await User.create({ name, email, password });
-  const token = signAccessToken(user._id);
+  const accessToken = signAccessToken(user._id);
+  const refreshToken = signRefreshToken(user._id);
 
-  return { user, token };
+  user.refreshToken = hashToken(refreshToken);
+  await user.save();
+
+  return { user, accessToken, refreshToken };
 };
 
 /**
  * Authenticate an existing user.
  */
 const login = async ({ email, password }) => {
-  const user = await User.findOne({ email: String(email) }).select('+password');
+  const user = await User.findOne({ email: String(email) }).select('+password +refreshToken');
   if (!user || !(await user.comparePassword(password))) {
     const error = new Error('Invalid email or password');
     error.statusCode = 401;
     throw error;
   }
 
-  const token = signAccessToken(user._id);
-  return { user, token };
+  const accessToken = signAccessToken(user._id);
+  const refreshToken = signRefreshToken(user._id);
+  user.refreshToken = hashToken(refreshToken);
+  await user.save();
+
+  return { user, accessToken, refreshToken };
 };
 
 /**
@@ -71,4 +84,27 @@ const updateProfile = async (userId, updates) => {
   return user;
 };
 
-module.exports = { register, login, getProfile, updateProfile };
+const refreshSession = async (refreshToken) => {
+  const decoded = verifyRefreshToken(refreshToken);
+  const user = await User.findById(decoded.id).select('+refreshToken');
+
+  if (!user || !user.refreshToken || user.refreshToken !== hashToken(refreshToken)) {
+    const error = new Error('Refresh token is invalid or expired');
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const accessToken = signAccessToken(user._id);
+  const nextRefreshToken = signRefreshToken(user._id);
+  user.refreshToken = hashToken(nextRefreshToken);
+  await user.save();
+
+  return { user, accessToken, refreshToken: nextRefreshToken };
+};
+
+const logout = async (userId) => {
+  if (!userId) return;
+  await User.findByIdAndUpdate(userId, { $unset: { refreshToken: 1 } }, { runValidators: false });
+};
+
+module.exports = { register, login, getProfile, updateProfile, refreshSession, logout };

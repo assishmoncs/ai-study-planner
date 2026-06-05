@@ -2,10 +2,11 @@ const express = require('express');
 const { body } = require('express-validator');
 const { createTask, getTasks, getTask, updateTask, deleteTask } = require('../controllers/taskController');
 const { protect } = require('../middleware/authMiddleware');
+const { userLimiter } = require('../middleware/rateLimiters');
 
 const router = express.Router();
 
-router.use(protect);
+router.use(protect, userLimiter);
 
 router
   .route('/')

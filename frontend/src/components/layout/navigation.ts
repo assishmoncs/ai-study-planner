@@ -3,6 +3,7 @@ import {
   BookOpen,
   CheckSquare,
   LayoutDashboard,
+  Timer,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -17,6 +18,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/study-plans', label: 'Study Plan', icon: BookOpen },
   { href: '/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/pomodoro', label: 'Pomodoro', icon: Timer },
 ];
 
 export function isRouteActive(pathname: string, href: string) {

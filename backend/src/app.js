@@ -9,11 +9,18 @@ const studyPlanRoutes = require('./routes/studyPlanRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const errorHandler = require('./middleware/errorHandler');
+const sanitizeRequest = require('./middleware/sanitizeMiddleware');
 
 const app = express();
 
+app.set('trust proxy', process.env.NODE_ENV === 'production' ? 1 : 0);
+
 // Security headers
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 // CORS
 app.use(
@@ -27,13 +34,16 @@ app.use(
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: 'Too many requests from this IP, please try again after 15 minutes.',
 });
 app.use('/api/', limiter);
 
 // Body parsers
-app.use(express.json());
+app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: false }));
+app.use(sanitizeRequest);
 
 // HTTP request logger
 if (process.env.NODE_ENV !== 'test') {

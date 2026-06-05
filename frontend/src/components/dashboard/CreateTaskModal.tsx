@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { apiClient } from '@/lib/api';
+import { useToast } from '@/components/ui/Toaster';
 
 interface FormData {
   title: string;
@@ -14,6 +15,7 @@ interface FormData {
 
 export default function CreateTaskModal({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     defaultValues: { priority: 'medium', estimatedMinutes: 30 },
   });
@@ -22,7 +24,11 @@ export default function CreateTaskModal({ onClose }: { onClose: () => void }) {
     mutationFn: (data: FormData) => apiClient.post('/tasks', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast({ title: 'Task created', description: 'Your task has been added.', variant: 'success' });
       onClose();
+    },
+    onError: () => {
+      toast({ title: 'Could not create task', description: 'Please check the fields and try again.', variant: 'error' });
     },
   });
 

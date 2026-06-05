@@ -69,7 +69,7 @@ const logHours = async (userId, planId, hours) => {
     throw error;
   }
 
-  plan.completedHours = Math.max(0, plan.completedHours + hours);
+  plan.completedHours = Math.max(0, parseFloat((plan.completedHours + Number(hours)).toFixed(2)));
   if (plan.completedHours >= plan.targetHours) {
     plan.status = 'completed';
   }
