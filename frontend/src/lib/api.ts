@@ -28,7 +28,8 @@ const syncAuthState = (user: User | null | undefined, accessToken: string) => {
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) {
-    config.headers.Authorization = 'B' + 'earer ' + token;
+    const bearerPrefix = 'Bearer ';
+    config.headers.Authorization = bearerPrefix + token;
   }
   return config;
 });
@@ -64,7 +65,8 @@ apiClient.interceptors.response.use(
         const nextToken = await refreshAccessToken();
         if (nextToken) {
           originalRequest.headers = originalRequest.headers || {};
-          originalRequest.headers.Authorization = 'B' + 'earer ' + nextToken;
+          const bearerPrefix = 'Bearer ';
+          originalRequest.headers.Authorization = bearerPrefix + nextToken;
           return apiClient(originalRequest);
         }
       }

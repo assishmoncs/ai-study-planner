@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Bell, BellOff, Pause, Play, RotateCcw, SkipForward, TimerReset } from 'lucide-react';
 import { apiClient } from '@/lib/api';
@@ -94,7 +94,7 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
     },
   });
 
-  const playSound = () => {
+  const playSound = useCallback(() => {
     if (!soundEnabled || typeof window === 'undefined') return;
     const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return;
@@ -112,16 +112,16 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
       oscillator.stop();
       context.close().catch(() => undefined);
     }, 450);
-  };
+  }, [soundEnabled]);
 
-  const notify = (title: string, body: string) => {
+  const notify = useCallback((title: string, body: string) => {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
     if (Notification.permission === 'granted') {
       new Notification(title, { body });
     }
-  };
+  }, []);
 
-  const finishSession = (automated = true) => {
+  const finishSession = useCallback((automated = true) => {
     const nextMode = getNextMode(mode, completedFocusSessions);
     if (mode === 'focus' && activePlanId) {
       logHoursMutation.mutate({ planId: activePlanId, hours: focusMinutes / 60 });
@@ -144,7 +144,17 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
         mode === 'focus' ? 'Time for a break.' : 'Back to a focus session.'
       );
     }
-  };
+  }, [
+    activePlanId,
+    completedFocusSessions,
+    focusMinutes,
+    longBreakMinutes,
+    logHoursMutation,
+    mode,
+    playSound,
+    shortBreakMinutes,
+    notify,
+  ]);
 
   useEffect(() => {
     if (!running) return;
@@ -160,7 +170,7 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [running, mode, completedFocusSessions, focusMinutes, shortBreakMinutes, longBreakMinutes, activePlanId, soundEnabled]);
+  }, [running, finishSession]);
 
   const handleStart = async () => {
     if ('Notification' in window && Notification.permission === 'default') {

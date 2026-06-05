@@ -1,13 +1,13 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, X } from 'lucide-react';
 import { clsx } from 'clsx';
 
 type ToastVariant = 'default' | 'success' | 'error';
 
 interface Toast {
-  id: number;
+  id: string;
   title: string;
   description?: string;
   variant?: ToastVariant;
@@ -28,23 +28,17 @@ const variantStyles: Record<ToastVariant, string> = {
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const dismiss = useCallback((id: number) => {
+  const dismiss = useCallback((id: string) => {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }, []);
 
   const toast = useCallback((input: Omit<Toast, 'id'>) => {
-    const id = Date.now() + Math.random();
+    const id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
     setToasts((current) => [...current, { id, ...input }]);
     window.setTimeout(() => dismiss(id), 4000);
   }, [dismiss]);
 
   const value = useMemo(() => ({ toast }), [toast]);
-
-  useEffect(() => {
-    if (toasts.length === 0) return;
-    const timers = toasts.map((entry) => window.setTimeout(() => dismiss(entry.id), 4000));
-    return () => timers.forEach((timer) => window.clearTimeout(timer));
-  }, [toasts, dismiss]);
 
   return (
     <ToastContext.Provider value={value}>
