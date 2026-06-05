@@ -5,6 +5,7 @@ import StatCard from '@/components/dashboard/StatCard';
 import ActivityChart from '@/components/dashboard/ActivityChart';
 import SubjectBreakdown from '@/components/dashboard/SubjectBreakdown';
 import RecentTasks from '@/components/dashboard/RecentTasks';
+import PomodoroWidget from '@/components/pomodoro/PomodoroWidget';
 import { BookOpen, CheckCircle2, Clock3, ClipboardList } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -30,6 +31,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <PomodoroWidget />
+
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-3xl">
           Dashboard

@@ -69,4 +69,8 @@ taskSchema.pre('save', function (next) {
   next();
 });
 
+taskSchema.index({ user: 1, status: 1, updatedAt: -1 });
+taskSchema.index({ user: 1, dueDate: 1 });
+taskSchema.index({ user: 1, studyPlan: 1 });
+
 module.exports = mongoose.model('Task', taskSchema);

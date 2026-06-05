@@ -7,16 +7,26 @@ import { clsx } from 'clsx';
 import { LogOut, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/components/layout/ThemeProvider';
 import { NAV_ITEMS, isRouteActive } from '@/components/layout/navigation';
+import { apiClient } from '@/lib/api';
+import { useToast } from '@/components/ui/Toaster';
 
 export default function TopBar() {
   const { user, clearAuth } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
   const { isDark, toggleTheme } = useTheme();
+  const { toast } = useToast();
 
-  const handleLogout = () => {
-    clearAuth();
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch {
+      // ignore logout API failures and clear local session anyway
+    } finally {
+      clearAuth();
+      toast({ title: 'Signed out', description: 'You have been logged out.', variant: 'success' });
+      router.push('/login');
+    }
   };
 
   return (
@@ -64,7 +74,7 @@ export default function TopBar() {
       </header>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
+        <div className="mx-auto grid max-w-2xl grid-cols-5 gap-1">
           {NAV_ITEMS.map((item) => {
             const active = isRouteActive(pathname, item.href);
             const Icon = item.icon;

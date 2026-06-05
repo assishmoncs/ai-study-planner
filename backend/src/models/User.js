@@ -28,14 +28,14 @@ const userSchema = new mongoose.Schema(
       default: '',
     },
     preferences: {
-      studyHoursPerDay: { type: Number, default: 4 },
+      studyHoursPerDay: { type: Number, default: 4, min: 0.5, max: 24 },
       preferredStudyTime: {
         type: String,
         enum: ['morning', 'afternoon', 'evening', 'night'],
         default: 'morning',
       },
-      pomodoroLength: { type: Number, default: 25 },
-      breakLength: { type: Number, default: 5 },
+      pomodoroLength: { type: Number, default: 25, min: 1, max: 120 },
+      breakLength: { type: Number, default: 5, min: 1, max: 60 },
       timezone: { type: String, default: 'UTC' },
     },
     refreshToken: {
@@ -45,6 +45,8 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.index({ email: 1 }, { unique: true });
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

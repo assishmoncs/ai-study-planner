@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { apiClient } from '@/lib/api';
+import { useToast } from '@/components/ui/Toaster';
 
 interface FormData {
   title: string;
@@ -16,6 +17,7 @@ interface FormData {
 
 export default function CreatePlanModal({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const {
     register,
     handleSubmit,
@@ -30,7 +32,11 @@ export default function CreatePlanModal({ onClose }: { onClose: () => void }) {
     mutationFn: (data: FormData) => apiClient.post('/study-plans', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['study-plans'] });
+      toast({ title: 'Plan created', description: 'Your study plan is ready.', variant: 'success' });
       onClose();
+    },
+    onError: () => {
+      toast({ title: 'Could not create plan', description: 'Please check the fields and try again.', variant: 'error' });
     },
   });
 

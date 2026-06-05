@@ -10,10 +10,11 @@ const {
   getAISuggestions,
 } = require('../controllers/studyPlanController');
 const { protect } = require('../middleware/authMiddleware');
+const { userLimiter } = require('../middleware/rateLimiters');
 
 const router = express.Router();
 
-router.use(protect);
+router.use(protect, userLimiter);
 
 router
   .route('/')
@@ -35,7 +36,7 @@ router
   .patch(updatePlan)
   .delete(deletePlan);
 
-router.post('/:id/log-hours', logHours);
 router.post('/ai/suggest', getAISuggestions);
+router.post('/:id/log-hours', [body('hours').isFloat({ min: 0.01 }).withMessage('Hours must be greater than 0')], logHours);
 
 module.exports = router;

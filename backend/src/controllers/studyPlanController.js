@@ -55,10 +55,12 @@ const deletePlan = async (req, res, next) => {
 
 const logHours = async (req, res, next) => {
   try {
-    const { hours } = req.body;
-    if (typeof hours !== 'number' || hours <= 0) {
-      return sendError(res, { statusCode: 400, message: 'hours must be a positive number' });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return sendError(res, { statusCode: 400, message: 'Validation failed', errors: errors.array() });
     }
+
+    const { hours } = req.body;
     const plan = await studyPlanService.logHours(req.user._id, req.params.id, hours);
     sendSuccess(res, { message: 'Hours logged', data: { plan } });
   } catch (error) {

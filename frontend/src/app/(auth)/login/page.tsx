@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from '@/store/authStore';
 import { apiClient } from '@/lib/api';
+import { useToast } from '@/components/ui/Toaster';
 
 interface LoginForm {
   email: string;
@@ -14,6 +15,7 @@ interface LoginForm {
 export default function LoginPage() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const { toast } = useToast();
   const [serverError, setServerError] = useState('');
 
   const {
@@ -26,7 +28,8 @@ export default function LoginPage() {
     setServerError('');
     try {
       const res = await apiClient.post('/auth/login', data);
-      setAuth(res.data.data.user, res.data.data.token);
+      setAuth(res.data.data.user, res.data.data.accessToken);
+      toast({ title: 'Welcome back', description: 'You are now signed in.', variant: 'success' });
       router.push('/dashboard');
     } catch (err: unknown) {
       const message =
@@ -34,6 +37,7 @@ export default function LoginPage() {
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : undefined;
       setServerError(message || 'Login failed. Please try again.');
+      toast({ title: 'Login failed', description: message || 'Please try again.', variant: 'error' });
     }
   };
 

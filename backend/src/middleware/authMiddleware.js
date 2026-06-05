@@ -1,4 +1,4 @@
-const { verifyToken } = require('../utils/jwtUtils');
+const { verifyAccessToken } = require('../utils/jwtUtils');
 const User = require('../models/User');
 const { sendError } = require('../utils/responseHelper');
 
@@ -14,7 +14,7 @@ const protect = async (req, res, next) => {
   }
 
   try {
-    const decoded = verifyToken(token);
+    const decoded = verifyAccessToken(token);
     req.user = await User.findById(decoded.id).select('-password -refreshToken');
 
     if (!req.user) {
