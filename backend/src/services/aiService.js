@@ -3,7 +3,7 @@ const OpenAI = require('openai');
 const fallbackPlan = ({ subject, daysAvailable, hoursPerDay, currentLevel }) => ({
   title: `${subject} study plan`,
   summary: `A ${currentLevel} friendly plan for the next ${daysAvailable} days at ${hoursPerDay}h/day.`,
-  dailyPlan: Array.from({ length: Math.max(1, Number(daysAvailable) || 1) }, (_value, index) => ({
+  dailyPlan: Array.from({ length: Number(daysAvailable) || 1 }, (_value, index) => ({
     day: index + 1,
     focus: `${subject} topic ${index + 1}`,
     tasks: ['Review notes', 'Complete practice problems', 'Summarize key ideas'],

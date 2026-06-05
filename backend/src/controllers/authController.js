@@ -4,14 +4,18 @@ const { sendSuccess, sendError } = require('../utils/responseHelper');
 const { buildRefreshCookieOptions, verifyRefreshToken } = require('../utils/jwtUtils');
 
 const extractRefreshToken = (req) => {
-  const cookieHeader = req.headers.cookie || '';
-  const cookies = cookieHeader.split(';').reduce((acc, pair) => {
-    const [rawKey, ...rawValue] = pair.trim().split('=');
-    if (!rawKey) return acc;
-    acc[rawKey] = decodeURIComponent(rawValue.join('=') || '');
-    return acc;
-  }, {});
-  return req.cookies?.refreshToken || cookies.refreshToken || '';
+  try {
+    const cookieHeader = req.headers.cookie || '';
+    const cookies = cookieHeader.split(';').reduce((acc, pair) => {
+      const [rawKey, ...rawValue] = pair.trim().split('=');
+      if (!rawKey) return acc;
+      acc[rawKey] = decodeURIComponent(rawValue.join('=') || '');
+      return acc;
+    }, {});
+    return { token: req.cookies?.refreshToken || cookies.refreshToken || '' };
+  } catch {
+    return { error: 'Malformed cookie header' };
+  }
 };
 
 const register = async (req, res, next) => {
@@ -72,7 +76,11 @@ const updateProfile = async (req, res, next) => {
 
 const refresh = async (req, res, next) => {
   try {
-    const refreshToken = extractRefreshToken(req);
+    const extraction = extractRefreshToken(req);
+    if (extraction.error) {
+      return sendError(res, { statusCode: 400, message: extraction.error });
+    }
+    const { token: refreshToken } = extraction;
     if (!refreshToken) {
       return sendError(res, { statusCode: 401, message: 'Refresh token is required' });
     }
@@ -88,7 +96,11 @@ const refresh = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    const refreshToken = extractRefreshToken(req);
+    const extraction = extractRefreshToken(req);
+    if (extraction.error) {
+      return sendError(res, { statusCode: 400, message: extraction.error });
+    }
+    const { token: refreshToken } = extraction;
     if (refreshToken) {
       try {
         const decoded = verifyRefreshToken(refreshToken);

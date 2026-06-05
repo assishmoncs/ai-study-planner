@@ -96,10 +96,11 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
 
   const playSound = useCallback(() => {
     if (!soundEnabled || typeof window === 'undefined') return;
-    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextClass) return;
+    const AudioContextConstructor =
+      window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextConstructor) return;
 
-    const context = new AudioContextClass();
+    const context = new AudioContextConstructor();
     const oscillator = context.createOscillator();
     const gain = context.createGain();
     oscillator.type = 'sine';

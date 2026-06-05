@@ -18,6 +18,7 @@ interface ToastContextValue {
 }
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
+let fallbackToastId = 0;
 
 const variantStyles: Record<ToastVariant, string> = {
   default: 'border-slate-200 bg-white text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100',
@@ -33,7 +34,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toast = useCallback((input: Omit<Toast, 'id'>) => {
-    const id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+    const id = globalThis.crypto?.randomUUID?.() ?? `toast-${++fallbackToastId}`;
     setToasts((current) => [...current, { id, ...input }]);
     window.setTimeout(() => dismiss(id), 4000);
   }, [dismiss]);
