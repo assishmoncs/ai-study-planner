@@ -1,5 +1,7 @@
 const OpenAI = require('openai');
 
+const MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+
 const fallbackPlan = ({ subject, daysAvailable, hoursPerDay, currentLevel }) => ({
   title: `${subject} study plan`,
   summary: `A ${currentLevel} friendly plan for the next ${daysAvailable} days at ${hoursPerDay}h/day.`,
@@ -9,7 +11,11 @@ const fallbackPlan = ({ subject, daysAvailable, hoursPerDay, currentLevel }) => 
     tasks: ['Review notes', 'Complete practice problems', 'Summarize key ideas'],
   })),
   resources: ['Course notes', 'Practice questions', 'One short recap video'],
-  milestones: ['Finish a baseline review', 'Complete one timed practice session', 'Do a final revision'],
+  milestones: [
+    'Finish a baseline review',
+    'Complete one timed practice session',
+    'Do a final revision',
+  ],
   tips: ['Study in focused blocks', 'Review mistakes immediately', 'Rest between cycles'],
 });
 
@@ -31,7 +37,12 @@ const getClient = () => {
  * @param {string} params.currentLevel - beginner | intermediate | advanced
  * @returns {Promise<string>} AI-generated suggestions
  */
-const generateStudyPlan = async ({ subject, daysAvailable, hoursPerDay, currentLevel = 'beginner' }) => {
+const generateStudyPlan = async ({
+  subject,
+  daysAvailable,
+  hoursPerDay,
+  currentLevel = 'beginner',
+}) => {
   const client = getClient();
   if (!client) {
     return fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel });
@@ -57,7 +68,7 @@ Return JSON only with this shape:
 Keep it concise, realistic, and actionable.`;
 
     const response = await client.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: MODEL,
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 800,
       temperature: 0.7,
@@ -69,11 +80,22 @@ Keep it concise, realistic, and actionable.`;
     if (!parsed || typeof parsed !== 'object') throw new Error('Invalid AI response');
     return {
       title: typeof parsed.title === 'string' ? parsed.title : `${subject} study plan`,
-      summary: typeof parsed.summary === 'string' ? parsed.summary : fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel }).summary,
-      dailyPlan: Array.isArray(parsed.dailyPlan) ? parsed.dailyPlan : fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel }).dailyPlan,
-      resources: Array.isArray(parsed.resources) ? parsed.resources : fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel }).resources,
-      milestones: Array.isArray(parsed.milestones) ? parsed.milestones : fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel }).milestones,
-      tips: Array.isArray(parsed.tips) ? parsed.tips : fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel }).tips,
+      summary:
+        typeof parsed.summary === 'string'
+          ? parsed.summary
+          : fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel }).summary,
+      dailyPlan: Array.isArray(parsed.dailyPlan)
+        ? parsed.dailyPlan
+        : fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel }).dailyPlan,
+      resources: Array.isArray(parsed.resources)
+        ? parsed.resources
+        : fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel }).resources,
+      milestones: Array.isArray(parsed.milestones)
+        ? parsed.milestones
+        : fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel }).milestones,
+      tips: Array.isArray(parsed.tips)
+        ? parsed.tips
+        : fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel }).tips,
     };
   } catch {
     return fallbackPlan({ subject, daysAvailable, hoursPerDay, currentLevel });
@@ -102,7 +124,7 @@ Return JSON only in this shape:
 
   try {
     const response = await client.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: MODEL,
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 300,
       temperature: 0.6,

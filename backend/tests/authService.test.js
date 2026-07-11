@@ -32,7 +32,11 @@ describe('authService', () => {
     const save = jest.fn().mockResolvedValue(true);
     User.create.mockResolvedValue({ _id: 'user-1', save, refreshToken: null });
 
-    const result = await authService.register({ name: 'Jane', email: 'jane@example.com', password: 'secret123' });
+    const result = await authService.register({
+      name: 'Jane',
+      email: 'jane@example.com',
+      password: 'secret123',
+    });
 
     expect(User.create).toHaveBeenCalledWith({
       name: 'Jane',
@@ -50,7 +54,9 @@ describe('authService', () => {
     });
     User.findOne.mockReturnValue({ select });
 
-    await expect(authService.login({ email: 'jane@example.com', password: 'wrong' })).rejects.toMatchObject({
+    await expect(
+      authService.login({ email: 'jane@example.com', password: 'wrong' })
+    ).rejects.toMatchObject({
       statusCode: 401,
     });
   });
@@ -58,7 +64,9 @@ describe('authService', () => {
   it('rotates refresh tokens on session refresh', async () => {
     const save = jest.fn().mockResolvedValue(true);
     User.findById.mockReturnValue({
-      select: jest.fn().mockResolvedValue({ _id: 'user-1', refreshToken: 'hash:refresh-token', save }),
+      select: jest
+        .fn()
+        .mockResolvedValue({ _id: 'user-1', refreshToken: 'hash:refresh-token', save }),
     });
 
     const result = await authService.refreshSession('refresh-token');

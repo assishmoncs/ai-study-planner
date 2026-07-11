@@ -18,7 +18,10 @@ const protect = async (req, res, next) => {
     req.user = await User.findById(decoded.id).select('-password -refreshToken');
 
     if (!req.user) {
-      return sendError(res, { statusCode: 401, message: 'User belonging to this token no longer exists' });
+      return sendError(res, {
+        statusCode: 401,
+        message: 'User belonging to this token no longer exists',
+      });
     }
 
     next();

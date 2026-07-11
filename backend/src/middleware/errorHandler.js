@@ -1,8 +1,11 @@
 const { sendError } = require('../utils/responseHelper');
+const logger = require('../utils/logger');
 
-// eslint-disable-next-line no-unused-vars is not needed – _next prefix signals intentionally unused
+// The `_next` parameter is required for Express to treat this as an error handler,
+// even though it is intentionally unused (the `_` prefix satisfies the linter).
 const errorHandler = (err, req, res, _next) => {
-  console.error(err);
+  // Prefer the per-request child logger (carries the correlation id) when available.
+  (req.log || logger).error({ err }, err.message);
 
   // Mongoose validation error
   if (err.name === 'ValidationError') {
@@ -13,7 +16,10 @@ const errorHandler = (err, req, res, _next) => {
   // Mongoose duplicate key
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue)[0];
-    return sendError(res, { statusCode: 409, message: `A record with that ${field} already exists` });
+    return sendError(res, {
+      statusCode: 409,
+      message: `A record with that ${field} already exists`,
+    });
   }
 
   // Mongoose bad ObjectId
