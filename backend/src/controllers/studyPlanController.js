@@ -7,7 +7,11 @@ const createPlan = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return sendError(res, { statusCode: 400, message: 'Validation failed', errors: errors.array() });
+      return sendError(res, {
+        statusCode: 400,
+        message: 'Validation failed',
+        errors: errors.array(),
+      });
     }
 
     const plan = await studyPlanService.create(req.user._id, req.body);
@@ -57,7 +61,11 @@ const logHours = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return sendError(res, { statusCode: 400, message: 'Validation failed', errors: errors.array() });
+      return sendError(res, {
+        statusCode: 400,
+        message: 'Validation failed',
+        errors: errors.array(),
+      });
     }
 
     const { hours } = req.body;
@@ -83,4 +91,12 @@ const getAISuggestions = async (req, res, next) => {
   }
 };
 
-module.exports = { createPlan, getPlans, getPlan, updatePlan, deletePlan, logHours, getAISuggestions };
+module.exports = {
+  createPlan,
+  getPlans,
+  getPlan,
+  updatePlan,
+  deletePlan,
+  logHours,
+  getAISuggestions,
+};

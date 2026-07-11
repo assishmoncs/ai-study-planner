@@ -30,13 +30,13 @@ router
     createPlan
   );
 
-router
-  .route('/:id')
-  .get(getPlan)
-  .patch(updatePlan)
-  .delete(deletePlan);
+router.route('/:id').get(getPlan).patch(updatePlan).delete(deletePlan);
 
 router.post('/ai/suggest', getAISuggestions);
-router.post('/:id/log-hours', [body('hours').isFloat({ min: 0.01 }).withMessage('Hours must be greater than 0')], logHours);
+router.post(
+  '/:id/log-hours',
+  [body('hours').isFloat({ min: 0.01 }).withMessage('Hours must be greater than 0')],
+  logHours
+);
 
 module.exports = router;

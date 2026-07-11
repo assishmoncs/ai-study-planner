@@ -10,7 +10,10 @@ const sendSuccess = (res, { statusCode = 200, message = 'Success', data = null }
 /**
  * Send a standardised error response.
  */
-const sendError = (res, { statusCode = 500, message = 'Internal server error', errors = null } = {}) => {
+const sendError = (
+  res,
+  { statusCode = 500, message = 'Internal server error', errors = null } = {}
+) => {
   const body = { success: false, message };
   if (errors) body.errors = errors;
   return res.status(statusCode).json(body);

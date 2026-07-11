@@ -1,5 +1,9 @@
 const express = require('express');
-const { getSummary, getDailyActivity, getSubjectBreakdown } = require('../controllers/analyticsController');
+const {
+  getSummary,
+  getDailyActivity,
+  getSubjectBreakdown,
+} = require('../controllers/analyticsController');
 const { protect } = require('../middleware/authMiddleware');
 const { userLimiter } = require('../middleware/rateLimiters');
 

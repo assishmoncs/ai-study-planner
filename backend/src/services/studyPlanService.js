@@ -1,8 +1,19 @@
-const mongoose = require('mongoose');
 const StudyPlan = require('../models/StudyPlan');
 
 const ALLOWED_STATUSES = ['active', 'paused', 'completed', 'archived'];
-const ALLOWED_UPDATE_FIELDS = ['title', 'subject', 'description', 'startDate', 'endDate', 'targetHours', 'status', 'priority', 'tags', 'color', 'aiSuggestions'];
+const ALLOWED_UPDATE_FIELDS = [
+  'title',
+  'subject',
+  'description',
+  'startDate',
+  'endDate',
+  'targetHours',
+  'status',
+  'priority',
+  'tags',
+  'color',
+  'aiSuggestions',
+];
 
 /** Escape special regex characters from user input. */
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

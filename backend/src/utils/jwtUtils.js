@@ -16,9 +16,13 @@ const signAccessToken = (userId) => {
 };
 
 const signRefreshToken = (userId) => {
-  return jwt.sign({ id: userId, type: 'refresh', jti: crypto.randomUUID() }, process.env.JWT_SECRET, {
-    expiresIn: REFRESH_EXPIRES_IN,
-  });
+  return jwt.sign(
+    { id: userId, type: 'refresh', jti: crypto.randomUUID() },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: REFRESH_EXPIRES_IN,
+    }
+  );
 };
 
 /**
@@ -57,7 +61,9 @@ const cookieOptions = {
 
 const parseDurationToMs = (duration) => {
   if (typeof duration === 'number') return duration;
-  const match = String(duration).trim().match(/^(\d+)([smhd])$/i);
+  const match = String(duration)
+    .trim()
+    .match(/^(\d+)([smhd])$/i);
   if (!match) return 30 * 24 * 60 * 60 * 1000;
   const amount = Number(match[1]);
   const unit = match[2].toLowerCase();
