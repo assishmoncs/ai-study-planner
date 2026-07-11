@@ -30,7 +30,9 @@ describe('aiService', () => {
                   content: JSON.stringify({
                     title: 'Physics sprint',
                     summary: 'A focused plan',
-                    dailyPlan: [{ day: 1, focus: 'Kinematics', tasks: ['Read chapter', 'Solve problems'] }],
+                    dailyPlan: [
+                      { day: 1, focus: 'Kinematics', tasks: ['Read chapter', 'Solve problems'] },
+                    ],
                     resources: ['Notes'],
                     milestones: ['Finish chapter'],
                     tips: ['Study daily'],

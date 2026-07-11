@@ -22,11 +22,19 @@ const register = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return sendError(res, { statusCode: 400, message: 'Validation failed', errors: errors.array() });
+      return sendError(res, {
+        statusCode: 400,
+        message: 'Validation failed',
+        errors: errors.array(),
+      });
     }
 
     const { name, email, password } = req.body;
-    const { user, accessToken, refreshToken } = await authService.register({ name, email, password });
+    const { user, accessToken, refreshToken } = await authService.register({
+      name,
+      email,
+      password,
+    });
     res.cookie('refreshToken', refreshToken, buildRefreshCookieOptions());
 
     sendSuccess(res, {
@@ -43,7 +51,11 @@ const login = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return sendError(res, { statusCode: 400, message: 'Validation failed', errors: errors.array() });
+      return sendError(res, {
+        statusCode: 400,
+        message: 'Validation failed',
+        errors: errors.array(),
+      });
     }
 
     const { email, password } = req.body;
@@ -85,7 +97,11 @@ const refresh = async (req, res, next) => {
       return sendError(res, { statusCode: 401, message: 'Refresh token is required' });
     }
 
-    const { user, accessToken, refreshToken: nextRefreshToken } = await authService.refreshSession(refreshToken);
+    const {
+      user,
+      accessToken,
+      refreshToken: nextRefreshToken,
+    } = await authService.refreshSession(refreshToken);
     res.cookie('refreshToken', nextRefreshToken, buildRefreshCookieOptions());
 
     sendSuccess(res, { message: 'Session refreshed', data: { user, accessToken } });

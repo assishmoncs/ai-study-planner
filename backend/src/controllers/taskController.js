@@ -6,7 +6,11 @@ const createTask = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return sendError(res, { statusCode: 400, message: 'Validation failed', errors: errors.array() });
+      return sendError(res, {
+        statusCode: 400,
+        message: 'Validation failed',
+        errors: errors.array(),
+      });
     }
 
     const task = await taskService.create(req.user._id, req.body);

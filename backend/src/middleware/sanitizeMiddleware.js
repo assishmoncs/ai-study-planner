@@ -5,7 +5,8 @@ const sanitizeValue = (value) => {
 
   if (value && typeof value === 'object' && value.constructor === Object) {
     return Object.entries(value).reduce((acc, [key, nestedValue]) => {
-      if (key.startsWith('$') || key.includes('.') || key === '__proto__' || key === 'constructor') return acc;
+      if (key.startsWith('$') || key.includes('.') || key === '__proto__' || key === 'constructor')
+        return acc;
       acc[key] = sanitizeValue(nestedValue);
       return acc;
     }, {});
