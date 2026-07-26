@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   backend:
-    name: Backend (lint & test)
+    name: Backend (lint, type-check, test & build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,10 +26,12 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run lint
+      - run: npm run type-check
       - run: npm run format:check
       - run: npm run test:ci
         env:
           NODE_ENV: test
+      - run: npm run build
 
   frontend:
     name: Frontend (lint & build)

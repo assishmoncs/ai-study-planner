@@ -1,8 +1,10 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Emit a minimal standalone server bundle for lean production Docker images.
   output: 'standalone',
+  outputFileTracingRoot: path.join(__dirname, '../'),
   images: {
     domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
   },

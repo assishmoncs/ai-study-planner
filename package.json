@@ -1,0 +1,25 @@
+{
+  "name": "ai-study-planner",
+  "version": "1.0.0",
+  "description": "AI-Powered Personalized Study Planner – full-stack monorepo",
+  "private": true,
+  "scripts": {
+    "dev:all": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "build:all": "npm run build -w backend && npm run build -w frontend",
+    "test:all": "npm run test -w backend && npm run test -w frontend",
+    "lint:all": "npm run lint -w backend && npm run lint -w frontend",
+    "type-check:all": "npm run type-check -w backend",
+    "check:all": "npm run lint:all && npm run type-check:all && npm run test:all",
+    "format:all": "npm run format -w backend && npm run format -w frontend"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

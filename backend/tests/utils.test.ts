@@ -1,0 +1,49 @@
+import { sendSuccess, sendError } from '../src/utils/responseHelper';
+import { signAccessToken, verifyToken } from '../src/utils/jwtUtils';
+import type { Response } from 'express';
+
+// Mock JWT_SECRET for tests
+process.env.JWT_SECRET = 'test-secret-key';
+
+describe('responseHelper', () => {
+  const mockRes = () => {
+    const res = {} as Response;
+    res.status = jest.fn().mockReturnValue(res);
+    res.json = jest.fn().mockReturnValue(res);
+    return res;
+  };
+
+  it('sendSuccess sends correct shape', () => {
+    const res = mockRes();
+    sendSuccess(res, { statusCode: 201, message: 'Created', data: { id: 1 } });
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      message: 'Created',
+      data: { id: 1 },
+    });
+  });
+
+  it('sendError sends correct shape', () => {
+    const res = mockRes();
+    sendError(res, { statusCode: 400, message: 'Bad Request' });
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ success: false, message: 'Bad Request' });
+  });
+});
+
+describe('jwtUtils', () => {
+  const userId = '64a1b2c3d4e5f6a7b8c9d0e1';
+
+  it('signs and verifies a token', () => {
+    const token = signAccessToken(userId);
+    expect(typeof token).toBe('string');
+
+    const decoded = verifyToken(token) as { id: string };
+    expect(decoded.id).toBe(userId);
+  });
+
+  it('throws on invalid token', () => {
+    expect(() => verifyToken('invalid.token.here')).toThrow();
+  });
+});
