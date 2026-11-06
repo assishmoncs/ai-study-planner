@@ -35,7 +35,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       // Ignore storage access errors and fallback to system preference.
     }
 
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
     setThemeState(systemTheme);
     applyTheme(systemTheme);
   }, []);

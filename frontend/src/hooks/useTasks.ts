@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
-import type { Task } from '@/types';
+import type { ApiResponse, Task } from '@/types';
+import { responseData } from '@/lib/response';
 
 export interface TaskQueryFilters {
   status?: string;
@@ -23,7 +24,9 @@ export const useTasks = (filters?: TaskQueryFilters) => {
   return useQuery<Task[]>({
     queryKey: ['tasks', filters ?? {}],
     queryFn: () =>
-      apiClient.get(`/tasks${query ? `?${query}` : ''}`).then((r) => r.data.data.tasks),
+      apiClient
+        .get<ApiResponse<{ tasks: Task[] }>>(`/tasks${query ? `?${query}` : ''}`)
+        .then((r) => responseData(r.data).tasks),
   });
 };
 
@@ -34,7 +37,9 @@ export const useSuggestAITasks = () => {
   const queryClient = useQueryClient();
   return useMutation<string[], Error, { subject: string; description?: string }>({
     mutationFn: (payload) =>
-      apiClient.post('/tasks/ai/suggest', payload).then((r) => r.data.data.tasks as string[]),
+      apiClient
+        .post<ApiResponse<{ tasks: string[] }>>('/tasks/ai/suggest', payload)
+        .then((r) => responseData(r.data).tasks),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },

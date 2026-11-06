@@ -51,17 +51,17 @@ export default function StudyPlanCard({
   }
 
   return (
-    <div className="card flex flex-col justify-between hover:shadow-md transition-shadow duration-200">
+    <div className="card flex flex-col justify-between transition duration-200 hover:border-indigo-200 hover:shadow-md dark:hover:border-indigo-800">
       <div>
         <div
-          className="mb-4 h-1.5 rounded-full"
+          className="mb-5 h-1 rounded-full"
           style={{ backgroundColor: plan.color || '#6366f1' }}
         />
 
         <div className="mb-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <h3 className="truncate text-sm font-semibold leading-tight text-slate-950 dark:text-slate-100">
+              <h3 className="line-clamp-2 text-base font-semibold leading-snug text-slate-950 dark:text-slate-100">
                 {plan.title}
               </h3>
               {plan.aiGenerated && (
@@ -83,7 +83,7 @@ export default function StudyPlanCard({
               aria-label={`Status for ${plan.title}`}
               value={plan.status}
               onChange={(e) => onStatusChange(e.target.value as StudyPlan['status'])}
-              className={`shrink-0 rounded-md px-2 py-1 text-xs font-medium capitalize ring-1 focus:outline-none ${
+              className={`min-h-9 shrink-0 rounded-lg px-2 py-1 text-xs font-medium capitalize ring-1 focus:outline-none ${
                 STATUS_COLORS[plan.status] ?? 'bg-gray-100 text-gray-600'
               }`}
             >
@@ -116,7 +116,14 @@ export default function StudyPlanCard({
             </span>
             <span>{plan.targetHours}h total</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+          <div
+            role="progressbar"
+            aria-label={`${plan.title} progress`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+            className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"
+          >
             <div
               className="h-full rounded-full transition-all"
               style={{ width: `${progress}%`, backgroundColor: plan.color || '#6366f1' }}
@@ -129,6 +136,7 @@ export default function StudyPlanCard({
             <button
               type="button"
               onClick={() => setShowRoadmap((v) => !v)}
+              aria-expanded={showRoadmap}
               className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
             >
               {showRoadmap ? (
@@ -157,7 +165,7 @@ export default function StudyPlanCard({
       </div>
 
       <div className="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800/80">
-        <span className="text-xs text-slate-400 dark:text-slate-500">
+        <span className="text-xs text-slate-500 dark:text-slate-400">
           Ends {new Date(plan.endDate).toLocaleDateString()}
         </span>
         <div className="flex items-center gap-1.5">
@@ -165,7 +173,7 @@ export default function StudyPlanCard({
             <button
               type="button"
               onClick={() => onLogHours(0.5)}
-              className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
               title="Log 30 minutes of study time"
             >
               <Clock className="h-3 w-3" aria-hidden="true" />
@@ -174,7 +182,7 @@ export default function StudyPlanCard({
           )}
           <button
             onClick={onDelete}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors duration-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-400 transition-colors duration-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
             aria-label={`Delete ${plan.title}`}
             title="Delete plan"
           >

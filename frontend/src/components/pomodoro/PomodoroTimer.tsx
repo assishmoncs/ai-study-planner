@@ -95,10 +95,8 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
   }, [mode, focusMinutes, shortBreakMinutes, longBreakMinutes]);
 
   useEffect(() => {
-    if (!running) {
-      setSecondsLeft(currentDurationMinutes * 60);
-    }
-  }, [currentDurationMinutes, running]);
+    setSecondsLeft(currentDurationMinutes * 60);
+  }, [currentDurationMinutes]);
 
   const logHoursMutation = useMutation({
     mutationFn: async (payload: { planId: string; hours: number }) =>
@@ -219,7 +217,11 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
   }, [running, finishSession]);
 
   const handleStart = async () => {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+    if (
+      typeof window !== 'undefined' &&
+      'Notification' in window &&
+      Notification.permission === 'default'
+    ) {
       await Notification.requestPermission();
     }
     setRunning(true);
@@ -249,9 +251,7 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
         className={`flex flex-col gap-4 ${compact ? '' : 'xl:flex-row xl:items-start xl:justify-between'}`}
       >
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">
-            Pomodoro
-          </p>
+          <p className="eyebrow">Pomodoro</p>
           <h2 className="mt-1 text-xl font-semibold text-slate-950 dark:text-slate-100">
             {modeLabels[mode]} session
           </h2>
@@ -266,6 +266,7 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
             type="button"
             className="btn-secondary"
             onClick={() => setSoundEnabled((value) => !value)}
+            aria-pressed={soundEnabled}
           >
             {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
             {soundEnabled ? 'Sound on' : 'Sound off'}
@@ -285,10 +286,14 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
         </div>
       </div>
 
-      <div className={`grid gap-6 ${compact ? '' : 'xl:grid-cols-[minmax(0,1fr)_18rem]'}`}>
+      <div className={`grid gap-6 ${compact ? '' : '2xl:grid-cols-[minmax(0,1fr)_18rem]'}`}>
         <div className="flex flex-col items-center gap-5">
-          <div className="relative flex items-center justify-center">
-            <svg viewBox="0 0 280 280" className={compact ? 'h-56 w-56' : 'h-72 w-72'}>
+          <div className="relative flex max-w-full items-center justify-center rounded-full bg-indigo-50/50 dark:bg-indigo-500/5">
+            <svg
+              viewBox="0 0 280 280"
+              aria-hidden="true"
+              className={compact ? 'h-52 w-52 max-w-full' : 'h-64 w-64 max-w-full sm:h-72 sm:w-72'}
+            >
               <circle
                 cx="140"
                 cy="140"
@@ -300,7 +305,7 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
                 cx="140"
                 cy="140"
                 r={radius}
-                className="fill-none stroke-violet-500 transition-[stroke-dashoffset] duration-1000 ease-linear"
+                className="fill-none stroke-indigo-500 transition-[stroke-dashoffset] duration-1000 ease-linear"
                 strokeWidth={stroke}
                 strokeLinecap="round"
                 strokeDasharray={circumference}
@@ -311,10 +316,12 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
 
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
               <p
+                role="timer"
+                aria-label="Time remaining"
                 className={
                   compact
-                    ? 'text-4xl font-semibold tracking-tight'
-                    : 'text-5xl font-semibold tracking-tight'
+                    ? 'text-4xl font-semibold tabular-nums tracking-tight'
+                    : 'text-5xl font-semibold tabular-nums tracking-tight'
                 }
               >
                 {formatTime(secondsLeft)}
@@ -350,10 +357,14 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
 
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/40">
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <label
+              htmlFor={`timer-1-${compact ? 'compact' : 'full'}`}
+              className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+            >
               Active study plan
             </label>
             <select
+              id={`timer-1-${compact ? 'compact' : 'full'}`}
               className="input"
               value={activePlanId}
               onChange={(event) => setActivePlanId(event.target.value)}
@@ -373,11 +384,16 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor={`timer-2-${compact ? 'compact' : 'full'}`}
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Focus
               </label>
               <input
+                id={`timer-2-${compact ? 'compact' : 'full'}`}
                 type="number"
+                disabled={running}
                 min="1"
                 max="120"
                 className="input"
@@ -388,10 +404,14 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor={`timer-3-${compact ? 'compact' : 'full'}`}
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Short break
               </label>
               <input
+                id={`timer-3-${compact ? 'compact' : 'full'}`}
                 type="number"
                 min="1"
                 max="60"
@@ -405,10 +425,14 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+              <label
+                htmlFor={`timer-4-${compact ? 'compact' : 'full'}`}
+                className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400"
+              >
                 Long break
               </label>
               <input
+                id={`timer-4-${compact ? 'compact' : 'full'}`}
                 type="number"
                 min="1"
                 max="90"

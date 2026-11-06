@@ -1,11 +1,15 @@
 'use client';
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, CheckSquare } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
+import LoadingState from '@/components/ui/LoadingState';
+import QueryError from '@/components/ui/QueryError';
 import { apiClient } from '@/lib/api';
 import { useTasks } from '@/hooks/useTasks';
 import TaskItem from '@/components/dashboard/TaskItem';
 import CreateTaskModal from '@/components/dashboard/CreateTaskModal';
+import { useToast } from '@/components/ui/Toaster';
 import type { Task } from '@/types';
 
 const STATUS_FILTERS = ['all', 'todo', 'in_progress', 'completed'] as const;
@@ -13,12 +17,13 @@ const PRIORITY_FILTERS = ['all', 'urgent', 'high', 'medium', 'low'] as const;
 
 export default function TasksPage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
 
-  const { data, isLoading } = useTasks({
+  const { data, isLoading, isError, refetch } = useTasks({
     status: statusFilter,
     priority: priorityFilter,
     search: searchQuery,
@@ -27,6 +32,13 @@ export default function TasksPage() {
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: Task['status'] }) =>
       apiClient.patch(`/tasks/${id}`, { status }),
+    onError: () => {
+      toast({
+        title: 'Could not save your changes',
+        description: 'Please try again.',
+        variant: 'error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
@@ -35,6 +47,13 @@ export default function TasksPage() {
 
   const deleteTask = useMutation({
     mutationFn: (id: string) => apiClient.delete(`/tasks/${id}`),
+    onError: () => {
+      toast({
+        title: 'Could not save your changes',
+        description: 'Please try again.',
+        variant: 'error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
@@ -45,9 +64,7 @@ export default function TasksPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-3xl">
-            Tasks
-          </h1>
+          <h1 className="page-title">Tasks</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Manage your study tasks and track completion
           </p>
@@ -58,16 +75,15 @@ export default function TasksPage() {
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="filter-group">
           {STATUS_FILTERS.map((s) => (
             <button
               key={s}
+              aria-pressed={statusFilter === s}
               onClick={() => setStatusFilter(s)}
-              className={`min-w-fit flex-1 rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors duration-200 ${
-                statusFilter === s
-                  ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950'
-                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
+              className={`filter-button ${
+                statusFilter === s ? 'filter-active' : 'filter-inactive'
               }`}
             >
               {s.replace('_', ' ')}
@@ -84,7 +100,9 @@ export default function TasksPage() {
           >
             {PRIORITY_FILTERS.map((p) => (
               <option key={p} value={p}>
-                {p === 'all' ? 'All priorities' : `${p.charAt(0).toUpperCase()}${p.slice(1)} priority`}
+                {p === 'all'
+                  ? 'All priorities'
+                  : `${p.charAt(0).toUpperCase()}${p.slice(1)} priority`}
               </option>
             ))}
           </select>
@@ -96,6 +114,7 @@ export default function TasksPage() {
             />
             <input
               type="search"
+              aria-label="Search tasks"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tasks..."
@@ -105,25 +124,58 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {isLoading && (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="card h-16 animate-pulse bg-slate-100 dark:bg-slate-800" />
-          ))}
-        </div>
+      {isLoading && <LoadingState variant="tasks" count={4} />}
+      {isError && (
+        <QueryError
+          title="Could not load your tasks"
+          onRetry={() => {
+            void refetch();
+          }}
+        />
       )}
-
-      {!isLoading && (!data || data.length === 0) && (
-        <div className="card py-16 text-center">
-          <p className="font-medium text-slate-700 dark:text-slate-200">No tasks found</p>
-          <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">
-            Add a task or adjust your active filters
-          </p>
+      {!isLoading && !isError && (!data || data.length === 0) && (
+        <div className="card">
+          <EmptyState
+            icon={CheckSquare}
+            title={
+              statusFilter !== 'all' || priorityFilter !== 'all' || Boolean(searchQuery)
+                ? 'No matches just yet'
+                : 'Make room for your next step'
+            }
+            description={
+              statusFilter !== 'all' || priorityFilter !== 'all' || Boolean(searchQuery)
+                ? 'Try another search or clear your filters to see everything.'
+                : 'Add a task to start building a little momentum.'
+            }
+          >
+            {statusFilter !== 'all' || priorityFilter !== 'all' || Boolean(searchQuery) ? (
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setStatusFilter('all');
+                  setPriorityFilter('all');
+                  setSearchQuery('');
+                }}
+              >
+                Clear filters
+              </button>
+            ) : (
+              <button className="btn-primary" onClick={() => setShowModal(true)}>
+                <Plus className="h-4 w-4" />
+                Create your first task
+              </button>
+            )}
+          </EmptyState>
         </div>
       )}
 
       {!isLoading && data && data.length > 0 && (
-        <div className="space-y-3">
+        <fieldset
+          disabled={updateStatus.isPending || deleteTask.isPending}
+          aria-busy={updateStatus.isPending || deleteTask.isPending}
+          className="space-y-3 min-w-0 border-0 p-0 disabled:opacity-70"
+        >
+          <legend className="sr-only">Study tasks</legend>
           {data.map((task) => (
             <TaskItem
               key={task._id}
@@ -138,7 +190,7 @@ export default function TasksPage() {
               onDelete={() => deleteTask.mutate(task._id)}
             />
           ))}
-        </div>
+        </fieldset>
       )}
 
       {showModal && <CreateTaskModal onClose={() => setShowModal(false)} />}

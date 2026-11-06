@@ -1,9 +1,14 @@
+import LoadingState from '@/components/ui/LoadingState';
+import Skeleton from '@/components/ui/Skeleton';
+
 export default function StudyPlansLoading() {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="card h-48 animate-pulse bg-slate-100 dark:bg-slate-800" />
-      ))}
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <Skeleton width="40%" height={32} />
+        <Skeleton width="60%" />
+      </div>
+      <LoadingState variant="plans" count={3} />
     </div>
   );
 }

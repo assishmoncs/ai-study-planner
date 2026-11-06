@@ -27,20 +27,21 @@ export default function TaskItem({ task, onToggle, onDelete, onStatusChange }: T
     new Date(task.dueDate!).getTime() < new Date().setHours(0, 0, 0, 0);
 
   return (
-    <div className="card flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
+    <div className="card group flex flex-row flex-wrap items-start gap-3 !p-4 transition-colors hover:border-indigo-200 dark:hover:border-indigo-800 sm:items-center sm:gap-4">
       <button
         onClick={onToggle}
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200 ${
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200 ${
           isCompleted
             ? 'border-emerald-500 bg-emerald-500 text-white'
             : 'border-slate-300 hover:border-slate-500 dark:border-slate-600 dark:hover:border-slate-300'
         }`}
+        aria-pressed={isCompleted}
         aria-label={isCompleted ? 'Mark task as todo' : 'Mark task as complete'}
       >
         {isCompleted && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
       </button>
 
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-[calc(100%-4rem)] sm:basis-0">
         <div className="flex flex-wrap items-center gap-2">
           <p
             className={`text-sm font-medium ${
@@ -67,7 +68,7 @@ export default function TaskItem({ task, onToggle, onDelete, onStatusChange }: T
           </p>
         )}
 
-        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-400 dark:text-slate-500">
+        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
           {task.dueDate && (
             <span className={isOverdue ? 'font-medium text-rose-600 dark:text-rose-400' : ''}>
               {isOverdue ? 'Overdue • ' : 'Due '}
@@ -83,17 +84,18 @@ export default function TaskItem({ task, onToggle, onDelete, onStatusChange }: T
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 sm:justify-end">
+      <div className="flex w-full flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-800 sm:w-auto sm:border-0 sm:pt-0 sm:justify-end">
         {onStatusChange && (
           <select
             aria-label={`Status for ${task.title}`}
             value={task.status}
             onChange={(e) => onStatusChange(e.target.value as Task['status'])}
-            className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+            className="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
           >
             <option value="todo">To do</option>
             <option value="in_progress">In progress</option>
             <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
           </select>
         )}
 
@@ -107,7 +109,7 @@ export default function TaskItem({ task, onToggle, onDelete, onStatusChange }: T
 
         <button
           onClick={onDelete}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
           aria-label={`Delete ${task.title}`}
           title="Delete task"
         >

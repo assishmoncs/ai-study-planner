@@ -1,7 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, BookOpen } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
+import LoadingState from '@/components/ui/LoadingState';
+import QueryError from '@/components/ui/QueryError';
 import { apiClient } from '@/lib/api';
 import { useStudyPlans } from '@/hooks/useStudyPlans';
 import StudyPlanCard from '@/components/dashboard/StudyPlanCard';
@@ -18,13 +21,20 @@ export default function StudyPlansPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const { data, isLoading } = useStudyPlans({
+  const { data, isLoading, isError, refetch } = useStudyPlans({
     status: statusFilter,
     search: searchQuery,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiClient.delete(`/study-plans/${id}`),
+    onError: () => {
+      toast({
+        title: 'Could not save your changes',
+        description: 'Please try again.',
+        variant: 'error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['study-plans'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
@@ -35,16 +45,34 @@ export default function StudyPlansPage() {
   const logHoursMutation = useMutation({
     mutationFn: ({ id, hours }: { id: string; hours: number }) =>
       apiClient.post(`/study-plans/${id}/log-hours`, { hours }),
+    onError: () => {
+      toast({
+        title: 'Could not save your changes',
+        description: 'Please try again.',
+        variant: 'error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['study-plans'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
-      toast({ title: 'Study time logged', description: '+0.5h added to plan.', variant: 'success' });
+      toast({
+        title: 'Study time logged',
+        description: '+0.5h added to plan.',
+        variant: 'success',
+      });
     },
   });
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: StudyPlan['status'] }) =>
       apiClient.patch(`/study-plans/${id}`, { status }),
+    onError: () => {
+      toast({
+        title: 'Could not save your changes',
+        description: 'Please try again.',
+        variant: 'error',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['study-plans'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
@@ -55,9 +83,7 @@ export default function StudyPlansPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-3xl">
-            Study Plans
-          </h1>
+          <h1 className="page-title">Study Plans</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Organize your learning goals and AI study roadmaps
           </p>
@@ -68,16 +94,15 @@ export default function StudyPlansPage() {
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="filter-group">
           {STATUS_FILTERS.map((s) => (
             <button
               key={s}
+              aria-pressed={statusFilter === s}
               onClick={() => setStatusFilter(s)}
-              className={`min-w-fit rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors duration-200 ${
-                statusFilter === s
-                  ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950'
-                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
+              className={`filter-button ${
+                statusFilter === s ? 'filter-active' : 'filter-inactive'
               }`}
             >
               {s}
@@ -92,6 +117,7 @@ export default function StudyPlansPage() {
           />
           <input
             type="search"
+            aria-label="Search plans"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search plans or subjects..."
@@ -100,25 +126,61 @@ export default function StudyPlansPage() {
         </div>
       </div>
 
-      {isLoading && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="card h-44 animate-pulse bg-slate-100 dark:bg-slate-800" />
-          ))}
-        </div>
+      {isLoading && <LoadingState variant="plans" count={3} />}
+      {isError && (
+        <QueryError
+          title="Could not load your study plans"
+          onRetry={() => {
+            void refetch();
+          }}
+        />
       )}
-
-      {!isLoading && (!data || data.length === 0) && (
-        <div className="card py-16 text-center">
-          <p className="font-medium text-slate-700 dark:text-slate-200">No study plans found</p>
-          <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">
-            Create a new plan or generate one with AI to get started
-          </p>
+      {!isLoading && !isError && (!data || data.length === 0) && (
+        <div className="card">
+          <EmptyState
+            icon={BookOpen}
+            title={
+              statusFilter !== 'all' || Boolean(searchQuery)
+                ? 'No matches just yet'
+                : 'Your next chapter starts here'
+            }
+            description={
+              statusFilter !== 'all' || Boolean(searchQuery)
+                ? 'Try another search or clear your filters to see everything.'
+                : 'Create a study plan with a clear goal, or get a little help from AI.'
+            }
+          >
+            {statusFilter !== 'all' || Boolean(searchQuery) ? (
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setStatusFilter('all');
+                  setSearchQuery('');
+                }}
+              >
+                Clear filters
+              </button>
+            ) : (
+              <button className="btn-primary" onClick={() => setShowModal(true)}>
+                <Plus className="h-4 w-4" />
+                Create your first plan
+              </button>
+            )}
+          </EmptyState>
         </div>
       )}
 
       {!isLoading && data && data.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <fieldset
+          disabled={
+            deleteMutation.isPending || logHoursMutation.isPending || updateStatusMutation.isPending
+          }
+          aria-busy={
+            deleteMutation.isPending || logHoursMutation.isPending || updateStatusMutation.isPending
+          }
+          className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 min-w-0 border-0 p-0 disabled:opacity-70"
+        >
+          <legend className="sr-only">Study plans</legend>
           {data.map((plan) => (
             <StudyPlanCard
               key={plan._id}
@@ -128,7 +190,7 @@ export default function StudyPlansPage() {
               onStatusChange={(status) => updateStatusMutation.mutate({ id: plan._id, status })}
             />
           ))}
-        </div>
+        </fieldset>
       )}
 
       {showModal && <CreatePlanModal onClose={() => setShowModal(false)} />}

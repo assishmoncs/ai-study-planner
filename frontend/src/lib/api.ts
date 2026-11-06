@@ -59,7 +59,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      const originalRequest = error.config as { _retry?: boolean; headers?: Record<string, string>; url?: string };
+      const originalRequest = error.config as {
+        _retry?: boolean;
+        headers?: Record<string, string>;
+        url?: string;
+      };
       if (!originalRequest?._retry && !originalRequest?.url?.includes('/auth/refresh')) {
         originalRequest._retry = true;
         const nextToken = await refreshAccessToken();

@@ -1,10 +1,14 @@
+import LoadingState from '@/components/ui/LoadingState';
+import Skeleton from '@/components/ui/Skeleton';
+
 export default function TasksLoading() {
   return (
-    <div className="space-y-4">
-      <div className="card h-12 animate-pulse bg-slate-100 dark:bg-slate-800" />
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="card h-16 animate-pulse bg-slate-100 dark:bg-slate-800" />
-      ))}
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <Skeleton width="40%" height={32} />
+        <Skeleton width="60%" />
+      </div>
+      <LoadingState variant="tasks" count={4} />
     </div>
   );
 }

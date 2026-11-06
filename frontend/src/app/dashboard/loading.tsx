@@ -1,16 +1,17 @@
+import LoadingState from '@/components/ui/LoadingState';
+import Skeleton from '@/components/ui/Skeleton';
 export default function DashboardLoading() {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="card h-28 animate-pulse bg-slate-100 dark:bg-slate-800" />
-        ))}
+    <div className="space-y-7">
+      <Skeleton width="50%" height={40} />
+      <Skeleton height={170} variant="rectangular" />
+      <LoadingState variant="stats" count={4} />
+      <div className="grid gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <LoadingState />
+        </div>
+        <LoadingState />
       </div>
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="card h-80 animate-pulse bg-slate-100 dark:bg-slate-800 xl:col-span-2" />
-        <div className="card h-80 animate-pulse bg-slate-100 dark:bg-slate-800" />
-      </div>
-      <div className="card h-40 animate-pulse bg-slate-100 dark:bg-slate-800" />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import Sidebar from '@/components/layout/Sidebar';
@@ -9,21 +9,44 @@ import PageTransition from '@/components/layout/PageTransition';
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    if (!token) {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (hydrated && !token) {
       router.replace('/login');
     }
-  }, [token, router]);
+  }, [hydrated, token, router]);
 
-  if (!token) return null;
+  if (!hydrated || !token)
+    return (
+      <div className="flex min-h-dvh items-center justify-center" role="status">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-pulse rounded-2xl bg-indigo-500/20" />
+          <p className="text-sm text-slate-500 dark:text-slate-400">Opening your workspace…</p>
+        </div>
+      </div>
+    );
 
   return (
-    <div className="flex min-h-dvh bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
+    <div className="flex min-h-dvh">
+      <a
+        href="#main-content"
+        className="sr-only z-50 rounded-xl bg-indigo-600 p-3 text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      >
+        Skip to content
+      </a>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main className="flex-1 overflow-y-auto px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="min-w-0 flex-1 px-4 pb-28 pt-6 outline-none sm:px-6 sm:pt-8 lg:px-8 lg:pb-10 xl:px-10"
+        >
           <div className="mx-auto w-full max-w-7xl">
             <PageTransition>{children}</PageTransition>
           </div>

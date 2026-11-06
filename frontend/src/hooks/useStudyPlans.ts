@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
-import type { AIGeneratePayload, AIStudyPlanResponse, StudyPlan } from '@/types';
+import type { AIGeneratePayload, AIStudyPlanResponse, ApiResponse, StudyPlan } from '@/types';
+import { responseData } from '@/lib/response';
 
 export interface StudyPlanQueryFilters {
   status?: string;
@@ -23,7 +24,9 @@ export const useStudyPlans = (filters?: StudyPlanQueryFilters) => {
   return useQuery<StudyPlan[]>({
     queryKey: ['study-plans', filters ?? {}],
     queryFn: () =>
-      apiClient.get(`/study-plans${query ? `?${query}` : ''}`).then((r) => r.data.data.plans),
+      apiClient
+        .get<ApiResponse<{ plans: StudyPlan[] }>>(`/study-plans${query ? `?${query}` : ''}`)
+        .then((r) => responseData(r.data).plans),
   });
 };
 
@@ -34,8 +37,8 @@ export const useGenerateAIPlan = () => {
   return useMutation<AIStudyPlanResponse, Error, AIGeneratePayload>({
     mutationFn: (payload) =>
       apiClient
-        .post('/study-plans/ai/suggest', payload)
-        .then((r) => r.data.data.suggestions as AIStudyPlanResponse),
+        .post<ApiResponse<{ suggestions: AIStudyPlanResponse }>>('/study-plans/ai/suggest', payload)
+        .then((r) => responseData(r.data).suggestions),
   });
 };
 
@@ -46,7 +49,9 @@ export const useLogStudyHours = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, hours }: { id: string; hours: number }) =>
-      apiClient.post(`/study-plans/${id}/log-hours`, { hours }).then((r) => r.data.data.plan),
+      apiClient
+        .post<ApiResponse<{ plan: StudyPlan }>>(`/study-plans/${id}/log-hours`, { hours })
+        .then((r) => responseData(r.data).plan),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['study-plans'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });

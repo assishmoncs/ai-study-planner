@@ -15,7 +15,7 @@ export function Skeleton({
   style,
   ...props
 }: SkeletonProps) {
-  const baseClasses = 'animate-pulse bg-slate-200 dark:bg-slate-800';
+  const baseClasses = 'skeleton';
 
   const variants = {
     text: 'rounded h-4 w-full my-1',
@@ -25,6 +25,7 @@ export function Skeleton({
 
   return (
     <div
+      aria-hidden="true"
       className={clsx(baseClasses, variants[variant], className)}
       style={{
         width: typeof width === 'number' ? `${width}px` : width,

@@ -18,7 +18,10 @@ export function ProgressBar({
   className,
   ...props
 }: ProgressBarProps) {
-  const percentage = Math.min(100, Math.max(0, Math.round((value / max) * 100)));
+  const percentage =
+    Number.isFinite(value) && Number.isFinite(max) && max > 0
+      ? Math.min(100, Math.max(0, Math.round((value / max) * 100)))
+      : 0;
 
   const variants = {
     primary: 'bg-indigo-600 dark:bg-indigo-500',
@@ -41,9 +44,22 @@ export function ProgressBar({
           <span>{percentage}%</span>
         </div>
       )}
-      <div className={clsx('w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden', sizes[size])}>
+      <div
+        role="progressbar"
+        aria-label="Progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percentage}
+        className={clsx(
+          'w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden',
+          sizes[size]
+        )}
+      >
         <div
-          className={clsx('h-full transition-all duration-500 ease-out rounded-full', variants[variant])}
+          className={clsx(
+            'h-full transition-all duration-500 ease-out rounded-full',
+            variants[variant]
+          )}
           style={{ width: `${percentage}%` }}
         />
       </div>
