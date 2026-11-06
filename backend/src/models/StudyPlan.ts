@@ -19,6 +19,7 @@ const studyPlanSchema = new Schema<IStudyPlan>(
       type: String,
       required: [true, 'Subject is required'],
       trim: true,
+      maxlength: [120, 'Subject cannot exceed 120 characters'],
     },
     description: {
       type: String,
@@ -32,11 +33,19 @@ const studyPlanSchema = new Schema<IStudyPlan>(
     endDate: {
       type: Date,
       required: [true, 'End date is required'],
+      validate: {
+        validator: function (this: IStudyPlan, value: Date) {
+          if (!this.startDate || !value) return true;
+          return new Date(value).getTime() >= new Date(this.startDate).getTime();
+        },
+        message: 'End date must be on or after the start date',
+      },
     },
     targetHours: {
       type: Number,
       required: [true, 'Target hours are required'],
       min: [0.5, 'Target hours must be at least 0.5'],
+      max: [5000, 'Target hours cannot exceed 5000'],
     },
     completedHours: {
       type: Number,
@@ -53,7 +62,7 @@ const studyPlanSchema = new Schema<IStudyPlan>(
       enum: ['low', 'medium', 'high', 'urgent'],
       default: 'medium',
     },
-    tags: [{ type: String, trim: true }],
+    tags: [{ type: String, trim: true, maxlength: 50 }],
     aiGenerated: {
       type: Boolean,
       default: false,
@@ -61,6 +70,7 @@ const studyPlanSchema = new Schema<IStudyPlan>(
     aiSuggestions: {
       type: String,
       default: '',
+      maxlength: [20000, 'AI suggestions cannot exceed 20000 characters'],
     },
     color: {
       type: String,

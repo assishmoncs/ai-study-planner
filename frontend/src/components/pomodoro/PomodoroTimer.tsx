@@ -2,8 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, Bell, BellOff, Pause, Play, RotateCcw, SkipForward, TimerReset } from 'lucide-react';
+import {
+  ArrowRight,
+  Bell,
+  BellOff,
+  Pause,
+  Play,
+  RotateCcw,
+  SkipForward,
+  TimerReset,
+} from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/components/ui/Toaster';
 import type { StudyPlan } from '@/types';
 
@@ -26,8 +36,9 @@ const modeLabels: Record<TimerMode, string> = {
 };
 
 const formatTime = (seconds: number) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const mins = Math.floor(safeSeconds / 60);
+  const secs = safeSeconds % 60;
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
 
@@ -38,16 +49,31 @@ const getNextMode = (mode: TimerMode, completedFocusSessions: number): TimerMode
   return 'focus';
 };
 
+const clampMinutes = (val: unknown, fallback: number, max = 120): number => {
+  const num = Number(val);
+  if (!Number.isFinite(num) || num < 1) return fallback;
+  return Math.min(max, Math.round(num));
+};
+
+/**
+ * Interactive Pomodoro timer component supporting custom focus/break intervals,
+ * Web Audio notifications, browser notifications, and automatic study-hour logging.
+ */
 export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const user = useAuthStore((s) => s.user);
+
+  const initialFocus = user?.preferences?.pomodoroLength || DEFAULT_SETTINGS.focus;
+  const initialBreak = user?.preferences?.breakLength || DEFAULT_SETTINGS.shortBreak;
+
   const [mode, setMode] = useState<TimerMode>('focus');
-  const [secondsLeft, setSecondsLeft] = useState(DEFAULT_SETTINGS.focus * 60);
+  const [secondsLeft, setSecondsLeft] = useState(initialFocus * 60);
   const [running, setRunning] = useState(false);
   const [completedFocusSessions, setCompletedFocusSessions] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [focusMinutes, setFocusMinutes] = useState(DEFAULT_SETTINGS.focus);
-  const [shortBreakMinutes, setShortBreakMinutes] = useState(DEFAULT_SETTINGS.shortBreak);
+  const [focusMinutes, setFocusMinutes] = useState(initialFocus);
+  const [shortBreakMinutes, setShortBreakMinutes] = useState(initialBreak);
   const [longBreakMinutes, setLongBreakMinutes] = useState(DEFAULT_SETTINGS.longBreak);
   const [activePlanId, setActivePlanId] = useState<string>('');
 
@@ -79,6 +105,7 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
       apiClient.post(`/study-plans/${payload.planId}/log-hours`, { hours: payload.hours }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['study-plans'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
       toast({
         title: 'Study time logged',
         description: 'Completed focus time was added to your active plan.',
@@ -96,23 +123,31 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
 
   const playSound = useCallback(() => {
     if (!soundEnabled || typeof window === 'undefined') return;
-    const AudioContextConstructor =
-      window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextConstructor) return;
+    try {
+      const AudioContextConstructor =
+        window.AudioContext ||
+        (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextConstructor) return;
 
-    const context = new AudioContextConstructor();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.value = 880;
-    gain.gain.value = 0.06;
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start();
-    window.setTimeout(() => {
-      oscillator.stop();
-      context.close().catch(() => undefined);
-    }, 450);
+      const context = new AudioContextConstructor();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 880;
+      gain.gain.value = 0.06;
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      window.setTimeout(() => {
+        try {
+          oscillator.stop();
+        } finally {
+          context.close().catch(() => undefined);
+        }
+      }, 450);
+    } catch {
+      // Ignore Web Audio autoplay restriction errors
+    }
   }, [soundEnabled]);
 
   const notify = useCallback((title: string, body: string) => {
@@ -122,40 +157,50 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
     }
   }, []);
 
-  const finishSession = useCallback((automated = true) => {
-    const nextMode = getNextMode(mode, completedFocusSessions);
-    if (mode === 'focus' && activePlanId) {
-      logHoursMutation.mutate({ planId: activePlanId, hours: focusMinutes / 60 });
-    }
+  const finishSession = useCallback(
+    (automated = true) => {
+      const nextMode = getNextMode(mode, completedFocusSessions);
+      if (mode === 'focus' && activePlanId) {
+        logHoursMutation.mutate({
+          planId: activePlanId,
+          hours: Number((focusMinutes / 60).toFixed(2)),
+        });
+      }
 
-    if (mode === 'focus') {
-      setCompletedFocusSessions((count) => count + 1);
-    }
+      if (mode === 'focus') {
+        setCompletedFocusSessions((count) => count + 1);
+      }
 
-    setMode(nextMode);
-    setSecondsLeft(
-      (nextMode === 'focus' ? focusMinutes : nextMode === 'shortBreak' ? shortBreakMinutes : longBreakMinutes) * 60
-    );
-    setRunning(false);
-
-    if (automated) {
-      playSound();
-      notify(
-        mode === 'focus' ? 'Focus session complete' : 'Break finished',
-        mode === 'focus' ? 'Time for a break.' : 'Back to a focus session.'
+      setMode(nextMode);
+      setSecondsLeft(
+        (nextMode === 'focus'
+          ? focusMinutes
+          : nextMode === 'shortBreak'
+            ? shortBreakMinutes
+            : longBreakMinutes) * 60
       );
-    }
-  }, [
-    activePlanId,
-    completedFocusSessions,
-    focusMinutes,
-    longBreakMinutes,
-    logHoursMutation,
-    mode,
-    playSound,
-    shortBreakMinutes,
-    notify,
-  ]);
+      setRunning(false);
+
+      if (automated) {
+        playSound();
+        notify(
+          mode === 'focus' ? 'Focus session complete' : 'Break finished',
+          mode === 'focus' ? 'Time for a break.' : 'Back to a focus session.'
+        );
+      }
+    },
+    [
+      activePlanId,
+      completedFocusSessions,
+      focusMinutes,
+      longBreakMinutes,
+      logHoursMutation,
+      mode,
+      playSound,
+      shortBreakMinutes,
+      notify,
+    ]
+  );
 
   useEffect(() => {
     if (!running) return;
@@ -174,7 +219,7 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
   }, [running, finishSession]);
 
   const handleStart = async () => {
-    if ('Notification' in window && Notification.permission === 'default') {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
       await Notification.requestPermission();
     }
     setRunning(true);
@@ -200,19 +245,28 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
 
   return (
     <div className={`card ${compact ? 'space-y-4' : 'space-y-6'}`}>
-      <div className={`flex flex-col gap-4 ${compact ? '' : 'xl:flex-row xl:items-start xl:justify-between'}`}>
+      <div
+        className={`flex flex-col gap-4 ${compact ? '' : 'xl:flex-row xl:items-start xl:justify-between'}`}
+      >
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">Pomodoro</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">
+            Pomodoro
+          </p>
           <h2 className="mt-1 text-xl font-semibold text-slate-950 dark:text-slate-100">
             {modeLabels[mode]} session
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Cycle {completedFocusSessions + 1} • Automatically logs completed focus time to your active plan.
+            Cycle {completedFocusSessions + 1} • Automatically logs completed focus time to your
+            active plan.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="btn-secondary" onClick={() => setSoundEnabled((value) => !value)}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setSoundEnabled((value) => !value)}
+          >
             {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
             {soundEnabled ? 'Sound on' : 'Sound off'}
           </button>
@@ -235,7 +289,13 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
         <div className="flex flex-col items-center gap-5">
           <div className="relative flex items-center justify-center">
             <svg viewBox="0 0 280 280" className={compact ? 'h-56 w-56' : 'h-72 w-72'}>
-              <circle cx="140" cy="140" r={radius} className="fill-none stroke-slate-200 dark:stroke-slate-800" strokeWidth={stroke} />
+              <circle
+                cx="140"
+                cy="140"
+                r={radius}
+                className="fill-none stroke-slate-200 dark:stroke-slate-800"
+                strokeWidth={stroke}
+              />
               <circle
                 cx="140"
                 cy="140"
@@ -250,7 +310,13 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
             </svg>
 
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <p className={compact ? 'text-4xl font-semibold tracking-tight' : 'text-5xl font-semibold tracking-tight'}>
+              <p
+                className={
+                  compact
+                    ? 'text-4xl font-semibold tracking-tight'
+                    : 'text-5xl font-semibold tracking-tight'
+                }
+              >
                 {formatTime(secondsLeft)}
               </p>
               <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -307,33 +373,52 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Focus</label>
+              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                Focus
+              </label>
               <input
                 type="number"
                 min="1"
+                max="120"
                 className="input"
                 value={focusMinutes}
-                onChange={(event) => setFocusMinutes(Number(event.target.value) || 25)}
+                onChange={(event) =>
+                  setFocusMinutes(clampMinutes(event.target.value, DEFAULT_SETTINGS.focus, 120))
+                }
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Short break</label>
+              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                Short break
+              </label>
               <input
                 type="number"
                 min="1"
+                max="60"
                 className="input"
                 value={shortBreakMinutes}
-                onChange={(event) => setShortBreakMinutes(Number(event.target.value) || 5)}
+                onChange={(event) =>
+                  setShortBreakMinutes(
+                    clampMinutes(event.target.value, DEFAULT_SETTINGS.shortBreak, 60)
+                  )
+                }
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Long break</label>
+              <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
+                Long break
+              </label>
               <input
                 type="number"
                 min="1"
+                max="90"
                 className="input"
                 value={longBreakMinutes}
-                onChange={(event) => setLongBreakMinutes(Number(event.target.value) || 15)}
+                onChange={(event) =>
+                  setLongBreakMinutes(
+                    clampMinutes(event.target.value, DEFAULT_SETTINGS.longBreak, 90)
+                  )
+                }
               />
             </div>
           </div>
@@ -341,11 +426,15 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-950">
             <div className="flex items-center justify-between">
               <span className="text-slate-500 dark:text-slate-400">Completed focus blocks</span>
-              <span className="font-semibold text-slate-950 dark:text-slate-100">{completedFocusSessions}</span>
+              <span className="font-semibold text-slate-950 dark:text-slate-100">
+                {completedFocusSessions}
+              </span>
             </div>
             <div className="mt-3 flex items-center justify-between">
               <span className="text-slate-500 dark:text-slate-400">Current session length</span>
-              <span className="font-semibold text-slate-950 dark:text-slate-100">{currentDurationMinutes}m</span>
+              <span className="font-semibold text-slate-950 dark:text-slate-100">
+                {currentDurationMinutes}m
+              </span>
             </div>
             <div className="mt-3 flex items-center justify-between">
               <span className="text-slate-500 dark:text-slate-400">Auto-log</span>
@@ -365,7 +454,9 @@ export default function PomodoroTimer({ compact = false }: PomodoroTimerProps) {
           <div className="flex items-start gap-3 rounded-xl border border-violet-200 bg-violet-50 p-4 text-sm text-violet-900 dark:border-violet-900/60 dark:bg-violet-950/40 dark:text-violet-100">
             <ArrowRight className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
-              Complete a focus session to automatically add <span className="font-semibold">{focusMinutes / 60}h</span> to your active study plan.
+              Complete a focus session to automatically add{' '}
+              <span className="font-semibold">{Number((focusMinutes / 60).toFixed(2))}h</span> to
+              your active study plan.
             </p>
           </div>
         </div>

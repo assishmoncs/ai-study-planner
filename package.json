@@ -8,7 +8,7 @@
     "build:all": "npm run build -w backend && npm run build -w frontend",
     "test:all": "npm run test -w backend && npm run test -w frontend",
     "lint:all": "npm run lint -w backend && npm run lint -w frontend",
-    "type-check:all": "npm run type-check -w backend",
+    "type-check:all": "npm run type-check -w backend && npm run type-check -w frontend",
     "check:all": "npm run lint:all && npm run type-check:all && npm run test:all",
     "format:all": "npm run format -w backend && npm run format -w frontend"
   },

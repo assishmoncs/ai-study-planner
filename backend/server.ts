@@ -1,13 +1,17 @@
 import 'dotenv/config';
 import mongoose from 'mongoose';
-import app from './src/app.js';
-import connectDB from './src/config/db.js';
-import { validateEnv } from './src/config/env.js';
-import logger from './src/utils/logger.js';
+import app from './src/app';
+import connectDB from './src/config/db';
+import { validateEnv } from './src/config/env';
+import logger from './src/utils/logger';
 
 const PORT = process.env.PORT || 5000;
 
-const startServer = async () => {
+/**
+ * Bootstraps environment validation, MongoDB connection, HTTP server,
+ * and graceful OS signal shutdown handlers.
+ */
+export const startServer = async () => {
   validateEnv();
   await connectDB();
 
@@ -38,6 +42,10 @@ const startServer = async () => {
     logger.fatal({ err }, 'Uncaught exception, exiting');
     process.exit(1);
   });
+
+  return server;
 };
 
-startServer();
+if (require.main === module) {
+  startServer();
+}

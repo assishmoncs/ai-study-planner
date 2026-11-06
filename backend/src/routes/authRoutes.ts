@@ -27,7 +27,7 @@ const router = Router();
  *             type: object
  *             required: [name, email, password]
  *             properties:
- *               name: { type: string, example: Jane Doe }
+ *               name: { type: string, maxLength: 100, example: Jane Doe }
  *               email: { type: string, format: email, example: jane@example.com }
  *               password: { type: string, minLength: 8, example: secret123 }
  *     responses:
@@ -40,9 +40,16 @@ router.post(
   '/register',
   authLimiter,
   [
-    body('name').trim().notEmpty().withMessage('Name is required'),
+    body('name')
+      .trim()
+      .notEmpty()
+      .withMessage('Name is required')
+      .isLength({ max: 100 })
+      .withMessage('Name cannot exceed 100 characters'),
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+    body('password')
+      .isLength({ min: 8, max: 128 })
+      .withMessage('Password must be between 8 and 128 characters'),
   ],
   register
 );
@@ -83,7 +90,7 @@ router.post(
  * @openapi
  * /api/auth/refresh:
  *   post:
- *     summary: Refresh access token
+ *     summary: Refresh access token using HttpOnly refresh cookie
  *     tags: [Auth]
  *     responses:
  *       200:
@@ -97,7 +104,7 @@ router.post('/refresh', authLimiter, refresh);
  * @openapi
  * /api/auth/logout:
  *   post:
- *     summary: Log out the current user
+ *     summary: Log out the current user and revoke refresh token
  *     tags: [Auth]
  *     responses:
  *       200:
@@ -125,7 +132,7 @@ router.get('/me', protect, getProfile);
  * @openapi
  * /api/auth/me:
  *   patch:
- *     summary: Update current user profile
+ *     summary: Update current user profile and preferences
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -135,13 +142,49 @@ router.get('/me', protect, getProfile);
  *           schema:
  *             type: object
  *             properties:
- *               name: { type: string }
+ *               name: { type: string, maxLength: 100 }
  *               avatar: { type: string }
- *               preferences: { type: object }
+ *               preferences:
+ *                 type: object
+ *                 properties:
+ *                   studyHoursPerDay: { type: number, minimum: 0.5, maximum: 24 }
+ *                   preferredStudyTime: { type: string, enum: [morning, afternoon, evening, night] }
+ *                   pomodoroLength: { type: integer, minimum: 1, maximum: 120 }
+ *                   breakLength: { type: integer, minimum: 1, maximum: 60 }
+ *                   timezone: { type: string }
  *     responses:
  *       200:
  *         description: Profile updated
  */
-router.patch('/me', protect, updateProfile);
+router.patch(
+  '/me',
+  protect,
+  [
+    body('name')
+      .optional()
+      .trim()
+      .notEmpty()
+      .withMessage('Name cannot be empty')
+      .isLength({ max: 100 })
+      .withMessage('Name cannot exceed 100 characters'),
+    body('preferences.studyHoursPerDay')
+      .optional()
+      .isFloat({ min: 0.5, max: 24 })
+      .withMessage('Study hours per day must be between 0.5 and 24'),
+    body('preferences.preferredStudyTime')
+      .optional()
+      .isIn(['morning', 'afternoon', 'evening', 'night'])
+      .withMessage('Invalid preferred study time'),
+    body('preferences.pomodoroLength')
+      .optional()
+      .isInt({ min: 1, max: 120 })
+      .withMessage('Pomodoro length must be between 1 and 120 minutes'),
+    body('preferences.breakLength')
+      .optional()
+      .isInt({ min: 1, max: 60 })
+      .withMessage('Break length must be between 1 and 60 minutes'),
+  ],
+  updateProfile
+);
 
 export default router;

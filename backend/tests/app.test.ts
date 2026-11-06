@@ -18,6 +18,22 @@ describe('Readiness probe', () => {
   });
 });
 
+describe('Authentication guard on protected endpoints', () => {
+  it('rejects unauthenticated requests to /api/tasks with 401', async () => {
+    const res = await request(app).get('/api/tasks');
+    expect(res.statusCode).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('rejects unauthenticated requests to /api/study-plans/ai/suggest with 401', async () => {
+    const res = await request(app)
+      .post('/api/study-plans/ai/suggest')
+      .send({ subject: 'Math', daysAvailable: 5, hoursPerDay: 2 });
+    expect(res.statusCode).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
+});
+
 describe('404 handler', () => {
   it('returns 404 for unknown routes', async () => {
     const res = await request(app).get('/api/unknown-route');

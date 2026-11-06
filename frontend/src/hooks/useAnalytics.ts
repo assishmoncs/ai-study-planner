@@ -1,6 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 
+/**
+ * Custom hook providing TanStack Query streams for summary stats,
+ * daily study activity, and per-subject breakdowns.
+ *
+ * @param days - Lookback window in days for the daily activity chart (default: 30)
+ */
 export const useAnalytics = (days = 30) => {
   const summary = useQuery({
     queryKey: ['analytics', 'summary'],

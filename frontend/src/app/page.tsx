@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-indigo-50 flex flex-col items-center justify-center px-4">
+    <main className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 flex flex-col items-center justify-center px-4">
       <div className="max-w-3xl w-full text-center animate-fade-in">
         {/* Logo / Icon */}
         <div className="flex justify-center mb-6">
@@ -12,6 +12,7 @@ export default function HomePage() {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -23,12 +24,12 @@ export default function HomePage() {
           </div>
         </div>
 
-        <h1 className="text-5xl font-bold text-slate-900 mb-4">
+        <h1 className="text-5xl font-bold text-slate-900 dark:text-slate-100 mb-4">
           AI Study Planner
         </h1>
-        <p className="text-xl text-slate-600 mb-10 max-w-xl mx-auto">
-          Your AI-powered companion for personalized study plans, task management,
-          and productivity insights.
+        <p className="text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-xl mx-auto">
+          Your AI-powered companion for personalized study plans, task management, and productivity
+          insights.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -47,13 +48,12 @@ export default function HomePage() {
               icon: '🤖',
               title: 'AI-Generated Plans',
               description:
-                'Let GPT create a personalized study roadmap based on your goals and schedule.',
+                'Let AI create a personalized study roadmap based on your goals and schedule.',
             },
             {
               icon: '⏱️',
               title: 'Pomodoro Timer',
-              description:
-                'Stay focused with built-in work/break cycles and session tracking.',
+              description: 'Stay focused with built-in work/break cycles and session tracking.',
             },
             {
               icon: '📊',
@@ -64,8 +64,8 @@ export default function HomePage() {
           ].map((f) => (
             <div key={f.title} className="card">
               <div className="text-3xl mb-3">{f.icon}</div>
-              <h3 className="font-semibold text-slate-800 mb-1">{f.title}</h3>
-              <p className="text-sm text-slate-500">{f.description}</p>
+              <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-1">{f.title}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{f.description}</p>
             </div>
           ))}
         </div>

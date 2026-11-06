@@ -29,4 +29,38 @@ describe('studyPlanService', () => {
     expect(result.status).toBe('completed');
     expect(save).toHaveBeenCalled();
   });
+
+  it('rejects study plan creation when endDate is before startDate', async () => {
+    await expect(
+      studyPlanService.create('user-1', {
+        title: 'Invalid Dates Plan',
+        subject: 'Math',
+        startDate: '2026-06-10',
+        endDate: '2026-06-01',
+        targetHours: 10,
+      })
+    ).rejects.toMatchObject({
+      statusCode: 400,
+    });
+  });
+
+  it('applies status, priority, and search filters in getAll', async () => {
+    const sort = jest.fn().mockResolvedValue([]);
+    (StudyPlan.find as jest.Mock).mockReturnValue({ sort });
+
+    await studyPlanService.getAll('user-1', {
+      status: 'active',
+      priority: 'high',
+      search: 'algebra',
+    });
+
+    expect(StudyPlan.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user: 'user-1',
+        status: 'active',
+        priority: 'high',
+        $or: expect.any(Array),
+      })
+    );
+  });
 });

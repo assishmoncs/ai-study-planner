@@ -1,17 +1,51 @@
+/**
+ * Shared frontend TypeScript domain models and API contracts.
+ */
+
+export interface UserPreferences {
+  studyHoursPerDay: number;
+  preferredStudyTime: 'morning' | 'afternoon' | 'evening' | 'night';
+  pomodoroLength: number;
+  breakLength: number;
+  timezone: string;
+}
+
 export interface User {
   _id: string;
   name: string;
   email: string;
   avatar?: string;
-  preferences?: {
-    studyHoursPerDay: number;
-    preferredStudyTime: 'morning' | 'afternoon' | 'evening' | 'night';
-    pomodoroLength: number;
-    breakLength: number;
-    timezone: string;
-  };
+  preferences?: UserPreferences;
   createdAt: string;
   updatedAt: string;
+}
+
+export type StudyPlanStatus = 'active' | 'paused' | 'completed' | 'archived';
+export type PriorityLevel = 'low' | 'medium' | 'high' | 'urgent';
+export type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
+
+export interface AIDailyPlanItem {
+  day: number;
+  focus: string;
+  tasks: string[];
+}
+
+export interface AIStudyPlanResponse {
+  title: string;
+  summary: string;
+  dailyPlan: AIDailyPlanItem[];
+  resources: string[];
+  milestones: string[];
+  tips: string[];
+}
+
+export interface AIGeneratePayload {
+  subject: string;
+  daysAvailable: number;
+  hoursPerDay: number;
+  currentLevel?: SkillLevel;
+  goals?: string;
 }
 
 export interface StudyPlan {
@@ -24,8 +58,8 @@ export interface StudyPlan {
   endDate: string;
   targetHours: number;
   completedHours: number;
-  status: 'active' | 'paused' | 'completed' | 'archived';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: StudyPlanStatus;
+  priority: PriorityLevel;
   tags: string[];
   aiGenerated: boolean;
   aiSuggestions?: string;
@@ -44,8 +78,8 @@ export interface Task {
   dueDate?: string | null;
   estimatedMinutes: number;
   actualMinutes: number;
-  status: 'todo' | 'in_progress' | 'completed' | 'cancelled';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: TaskStatus;
+  priority: PriorityLevel;
   tags: string[];
   pomodoroSessions: number;
   completedAt?: string | null;
@@ -56,6 +90,8 @@ export interface Task {
 export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
+  code?: string;
+  requestId?: string;
   data?: T;
-  errors?: Array<{ msg: string; param?: string }>;
+  errors?: Array<{ msg: string; param?: string; path?: string }>;
 }

@@ -2,27 +2,59 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import type { AuthPayload } from '../types/index';
 
-const ACCESS_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
-const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not configured');
+  }
+  return secret;
+};
 
+const getAccessExpiresIn = (): string => process.env.JWT_EXPIRES_IN || '15m';
+const getRefreshExpiresIn = (): string => process.env.JWT_REFRESH_EXPIRES_IN || '30d';
+
+/**
+ * Signs a short-lived JWT access token for the specified user ID.
+ *
+ * @param userId - MongoDB ObjectId string of the authenticated user
+ * @returns Signed JWT access token
+ */
 export const signAccessToken = (userId: string): string => {
-  return jwt.sign({ id: userId, type: 'access' } as AuthPayload, process.env.JWT_SECRET!, {
-    expiresIn: ACCESS_EXPIRES_IN as any,
+  return jwt.sign({ id: userId, type: 'access' } as AuthPayload, getJwtSecret(), {
+    expiresIn: getAccessExpiresIn() as jwt.SignOptions['expiresIn'],
   });
 };
 
+/**
+ * Signs a long-lived JWT refresh token with a unique token identifier (`jti`).
+ *
+ * @param userId - MongoDB ObjectId string of the authenticated user
+ * @returns Signed JWT refresh token
+ */
 export const signRefreshToken = (userId: string): string => {
   return jwt.sign(
     { id: userId, type: 'refresh', jti: crypto.randomUUID() } as AuthPayload,
-    process.env.JWT_SECRET!,
-    { expiresIn: REFRESH_EXPIRES_IN as any }
+    getJwtSecret(),
+    { expiresIn: getRefreshExpiresIn() as jwt.SignOptions['expiresIn'] }
   );
 };
 
+/**
+ * Verifies a JWT signature and returns its decoded payload.
+ *
+ * @param token - Raw JWT string
+ * @returns Decoded authentication payload
+ */
 export const verifyToken = (token: string): AuthPayload => {
-  return jwt.verify(token, process.env.JWT_SECRET!) as AuthPayload;
+  return jwt.verify(token, getJwtSecret()) as AuthPayload;
 };
 
+/**
+ * Verifies a JWT and asserts that it is an access token.
+ *
+ * @param token - Raw JWT access token
+ * @returns Decoded access token payload
+ */
 export const verifyAccessToken = (token: string): AuthPayload => {
   const decoded = verifyToken(token);
   if (decoded.type && decoded.type !== 'access') {
@@ -31,6 +63,12 @@ export const verifyAccessToken = (token: string): AuthPayload => {
   return decoded;
 };
 
+/**
+ * Verifies a JWT and asserts that it is a refresh token.
+ *
+ * @param token - Raw JWT refresh token
+ * @returns Decoded refresh token payload
+ */
 export const verifyRefreshToken = (token: string): AuthPayload => {
   const decoded = verifyToken(token);
   if (decoded.type !== 'refresh') {
@@ -39,15 +77,14 @@ export const verifyRefreshToken = (token: string): AuthPayload => {
   return decoded;
 };
 
+/**
+ * Computes a deterministic SHA-256 hex digest of a token for secure database storage.
+ *
+ * @param token - Raw token string
+ * @returns SHA-256 hex digest
+ */
 export const hashToken = (token: string): string =>
   crypto.createHash('sha256').update(token).digest('hex');
-
-const cookieOptions = {
-  httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: process.env.NODE_ENV === 'production',
-  path: '/api/auth',
-};
 
 const parseDurationToMs = (duration: string | number): number => {
   if (typeof duration === 'number') return duration;
@@ -61,7 +98,13 @@ const parseDurationToMs = (duration: string | number): number => {
   return amount * factors[unit];
 };
 
+/**
+ * Builds secure HttpOnly cookie options for storing the refresh token.
+ */
 export const buildRefreshCookieOptions = () => ({
-  ...cookieOptions,
-  maxAge: parseDurationToMs(REFRESH_EXPIRES_IN),
+  httpOnly: true,
+  sameSite: 'lax' as const,
+  secure: process.env.NODE_ENV === 'production',
+  path: '/api/auth',
+  maxAge: parseDurationToMs(getRefreshExpiresIn()),
 });

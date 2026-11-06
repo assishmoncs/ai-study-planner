@@ -3,8 +3,16 @@ import type { Response, NextFunction } from 'express';
 import * as authService from '../services/authService';
 import { sendSuccess, sendError } from '../utils/responseHelper';
 import { buildRefreshCookieOptions, verifyRefreshToken } from '../utils/jwtUtils';
-import type { CustomRequest, LoginPayload, RegisterPayload, ProfileUpdatePayload } from '../types/index';
+import type {
+  CustomRequest,
+  LoginPayload,
+  RegisterPayload,
+  ProfileUpdatePayload,
+} from '../types/index';
 
+/**
+ * Safely extracts the `refreshToken` cookie from the incoming HTTP request.
+ */
 const extractRefreshToken = (req: CustomRequest): { token?: string; error?: string } => {
   try {
     const cookieHeader = req.headers.cookie || '';
@@ -20,6 +28,9 @@ const extractRefreshToken = (req: CustomRequest): { token?: string; error?: stri
   }
 };
 
+/**
+ * Handles `POST /api/auth/register`.
+ */
 const register = async (req: CustomRequest, res: Response, next: NextFunction) => {
   try {
     const errors = validationResult(req);
@@ -49,6 +60,9 @@ const register = async (req: CustomRequest, res: Response, next: NextFunction) =
   }
 };
 
+/**
+ * Handles `POST /api/auth/login`.
+ */
 const login = async (req: CustomRequest, res: Response, next: NextFunction) => {
   try {
     const errors = validationResult(req);
@@ -70,6 +84,9 @@ const login = async (req: CustomRequest, res: Response, next: NextFunction) => {
   }
 };
 
+/**
+ * Handles `GET /api/auth/me`.
+ */
 const getProfile = async (req: CustomRequest, res: Response, next: NextFunction) => {
   try {
     const user = await authService.getProfile(req.user!._id.toString());
@@ -79,15 +96,33 @@ const getProfile = async (req: CustomRequest, res: Response, next: NextFunction)
   }
 };
 
+/**
+ * Handles `PATCH /api/auth/me`.
+ */
 const updateProfile = async (req: CustomRequest, res: Response, next: NextFunction) => {
   try {
-    const user = await authService.updateProfile(req.user!._id.toString(), req.body as ProfileUpdatePayload);
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return sendError(res, {
+        statusCode: 400,
+        message: 'Validation failed',
+        errors: errors.array(),
+      });
+    }
+
+    const user = await authService.updateProfile(
+      req.user!._id.toString(),
+      req.body as ProfileUpdatePayload
+    );
     sendSuccess(res, { message: 'Profile updated', data: { user } });
   } catch (error) {
     next(error);
   }
 };
 
+/**
+ * Handles `POST /api/auth/refresh`.
+ */
 const refresh = async (req: CustomRequest, res: Response, next: NextFunction) => {
   try {
     const extraction = extractRefreshToken(req);
@@ -112,6 +147,9 @@ const refresh = async (req: CustomRequest, res: Response, next: NextFunction) =>
   }
 };
 
+/**
+ * Handles `POST /api/auth/logout`.
+ */
 const logout = async (req: CustomRequest, res: Response, next: NextFunction) => {
   try {
     const extraction = extractRefreshToken(req);
@@ -124,7 +162,7 @@ const logout = async (req: CustomRequest, res: Response, next: NextFunction) => 
         const decoded = verifyRefreshToken(refreshToken);
         await authService.logout(decoded.id);
       } catch {
-        // ignore invalid tokens on logout
+        // Ignore expired/invalid refresh tokens on logout
       }
     }
 

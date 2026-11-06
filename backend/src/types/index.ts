@@ -2,9 +2,12 @@ import type { Request } from 'express';
 import type { Document, Types } from 'mongoose';
 
 /* ------------------------------------------------------------------ */
-/*  Mongoose document interfaces                                      */
+/*  Mongoose Document Interfaces                                      */
 /* ------------------------------------------------------------------ */
 
+/**
+ * User-configurable study and Pomodoro preferences.
+ */
 export interface IUserPreferences {
   studyHoursPerDay: number;
   preferredStudyTime: 'morning' | 'afternoon' | 'evening' | 'night';
@@ -13,6 +16,9 @@ export interface IUserPreferences {
   timezone: string;
 }
 
+/**
+ * Authenticated user document stored in MongoDB.
+ */
 export interface IUser extends Document<Types.ObjectId> {
   name: string;
   email: string;
@@ -23,6 +29,14 @@ export interface IUser extends Document<Types.ObjectId> {
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
+export type StudyPlanStatus = 'active' | 'paused' | 'completed' | 'archived';
+export type PriorityLevel = 'low' | 'medium' | 'high' | 'urgent';
+export type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
+
+/**
+ * Study plan document representing a structured learning goal.
+ */
 export interface IStudyPlan extends Document<Types.ObjectId> {
   user: Types.ObjectId;
   title: string;
@@ -32,8 +46,8 @@ export interface IStudyPlan extends Document<Types.ObjectId> {
   endDate: Date;
   targetHours: number;
   completedHours: number;
-  status: 'active' | 'paused' | 'completed' | 'archived';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: StudyPlanStatus;
+  priority: PriorityLevel;
   tags: string[];
   aiGenerated: boolean;
   aiSuggestions?: string;
@@ -41,6 +55,9 @@ export interface IStudyPlan extends Document<Types.ObjectId> {
   progressPercent: number;
 }
 
+/**
+ * Individual actionable study task optionally linked to a StudyPlan.
+ */
 export interface ITask extends Document<Types.ObjectId> {
   user: Types.ObjectId;
   studyPlan?: Types.ObjectId | null;
@@ -49,8 +66,8 @@ export interface ITask extends Document<Types.ObjectId> {
   dueDate?: Date | null;
   estimatedMinutes: number;
   actualMinutes: number;
-  status: 'todo' | 'in_progress' | 'completed' | 'cancelled';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: TaskStatus;
+  priority: PriorityLevel;
   tags: string[];
   pomodoroSessions: number;
   completedAt?: Date | null;
@@ -60,18 +77,24 @@ export interface ITask extends Document<Types.ObjectId> {
 /*  Auth / JWT                                                        */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Decoded JWT payload structure for access and refresh tokens.
+ */
 export interface AuthPayload {
   id: string;
   type: 'access' | 'refresh';
   jti?: string;
 }
 
+/**
+ * Express Request augmented with the authenticated user and request ID.
+ */
 export interface CustomRequest extends Request {
   user?: IUser;
 }
 
 /* ------------------------------------------------------------------ */
-/*  Service payloads                                                  */
+/*  Service & Repository Payloads                                     */
 /* ------------------------------------------------------------------ */
 
 export interface RegisterPayload {
@@ -94,6 +117,8 @@ export interface ProfileUpdatePayload {
 export interface StudyPlanFilters {
   status?: string;
   subject?: string;
+  priority?: string;
+  search?: string;
 }
 
 export interface TaskFilters {
@@ -101,30 +126,40 @@ export interface TaskFilters {
   priority?: string;
   studyPlan?: string;
   dueDate?: string;
+  search?: string;
 }
 
 export interface AIGeneratePayload {
   subject: string;
   daysAvailable: number;
   hoursPerDay: number;
-  currentLevel?: 'beginner' | 'intermediate' | 'advanced';
+  currentLevel?: SkillLevel;
+  goals?: string;
+}
+
+export interface AIDailyPlanItem {
+  day: number;
+  focus: string;
+  tasks: string[];
 }
 
 export interface AIStudyPlanResponse {
   title: string;
   summary: string;
-  dailyPlan: Array<{
-    day: number;
-    focus: string;
-    tasks: string[];
-  }>;
+  dailyPlan: AIDailyPlanItem[];
   resources: string[];
   milestones: string[];
   tips: string[];
 }
 
+export interface AITaskSuggestionPayload {
+  subject: string;
+  description?: string;
+  count?: number;
+}
+
 /* ------------------------------------------------------------------ */
-/*  API response shapes                                               */
+/*  API Response Shapes                                               */
 /* ------------------------------------------------------------------ */
 
 export interface ApiSuccessResponse<T = unknown> {
@@ -136,7 +171,9 @@ export interface ApiSuccessResponse<T = unknown> {
 export interface ApiErrorResponse {
   success: false;
   message: string;
-  errors?: Array<{ msg: string; param?: string; location?: string }>;
+  code?: string;
+  requestId?: string;
+  errors?: Array<{ msg: string; param?: string; path?: string; location?: string }> | string[];
 }
 
 export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;

@@ -33,6 +33,7 @@ const taskSchema = new Schema<ITask>(
       type: Number,
       default: 30,
       min: [1, 'Estimated minutes must be at least 1'],
+      max: [1440, 'Estimated minutes cannot exceed 1440'],
     },
     actualMinutes: {
       type: Number,
@@ -49,7 +50,7 @@ const taskSchema = new Schema<ITask>(
       enum: ['low', 'medium', 'high', 'urgent'],
       default: 'medium',
     },
-    tags: [{ type: String, trim: true }],
+    tags: [{ type: String, trim: true, maxlength: 50 }],
     pomodoroSessions: {
       type: Number,
       default: 0,
@@ -64,8 +65,12 @@ const taskSchema = new Schema<ITask>(
 );
 
 taskSchema.pre('save', function (next) {
-  if (this.isModified('status') && this.status === 'completed' && !this.completedAt) {
-    this.completedAt = new Date();
+  if (this.isModified('status')) {
+    if (this.status === 'completed' && !this.completedAt) {
+      this.completedAt = new Date();
+    } else if (this.status !== 'completed') {
+      this.completedAt = null;
+    }
   }
   next();
 });

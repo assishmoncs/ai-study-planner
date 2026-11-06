@@ -36,7 +36,11 @@ export default function RegisterPage() {
         password: data.password,
       });
       setAuth(res.data.data.user, res.data.data.accessToken);
-      toast({ title: 'Account created', description: 'Your study workspace is ready.', variant: 'success' });
+      toast({
+        title: 'Account created',
+        description: 'Your study workspace is ready.',
+        variant: 'success',
+      });
       router.push('/dashboard');
     } catch (err: unknown) {
       const message =
@@ -44,28 +48,39 @@ export default function RegisterPage() {
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : undefined;
       setServerError(message || 'Registration failed. Please try again.');
-      toast({ title: 'Registration failed', description: message || 'Please try again.', variant: 'error' });
+      toast({
+        title: 'Registration failed',
+        description: message || 'Please try again.',
+        variant: 'error',
+      });
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-indigo-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-indigo-50 dark:from-slate-950 dark:to-indigo-950 px-4">
       <div className="w-full max-w-md">
         <div className="card animate-slide-up">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-900">Create an account</h1>
-            <p className="text-sm text-slate-500 mt-1">Start planning smarter today</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              Create an account
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Start planning smarter today
+            </p>
           </div>
 
           {serverError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 dark:bg-red-950/40 dark:border-red-900/50 dark:text-red-300 rounded-lg text-sm">
               {serverError}
             </div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
                 Full Name
               </label>
               <input
@@ -79,7 +94,10 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
                 Email
               </label>
               <input
@@ -93,7 +111,10 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
                 Password
               </label>
               <input
@@ -112,7 +133,10 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
                 Confirm Password
               </label>
               <input
@@ -135,9 +159,12 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-500 mt-6">
+          <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
             Already have an account?{' '}
-            <Link href="/login" className="text-primary-600 hover:underline font-medium">
+            <Link
+              href="/login"
+              className="text-primary-600 dark:text-primary-400 hover:underline font-medium"
+            >
               Sign In
             </Link>
           </p>

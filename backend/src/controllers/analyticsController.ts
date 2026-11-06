@@ -3,6 +3,9 @@ import * as analyticsService from '../services/analyticsService';
 import { sendSuccess } from '../utils/responseHelper';
 import type { CustomRequest } from '../types/index';
 
+/**
+ * Handles `GET /api/analytics/summary`.
+ */
 const getSummary = async (req: CustomRequest, res: Response, next: NextFunction) => {
   try {
     const data = await analyticsService.getSummary(req.user!._id.toString());
@@ -12,9 +15,13 @@ const getSummary = async (req: CustomRequest, res: Response, next: NextFunction)
   }
 };
 
+/**
+ * Handles `GET /api/analytics/daily`.
+ */
 const getDailyActivity = async (req: CustomRequest, res: Response, next: NextFunction) => {
   try {
-    const days = parseInt(req.query.days as string, 10) || 30;
+    const rawDays = parseInt(req.query.days as string, 10);
+    const days = Number.isFinite(rawDays) && rawDays > 0 ? Math.min(365, rawDays) : 30;
     const data = await analyticsService.getDailyActivity(req.user!._id.toString(), days);
     sendSuccess(res, { data: { activity: data } });
   } catch (error) {
@@ -22,6 +29,9 @@ const getDailyActivity = async (req: CustomRequest, res: Response, next: NextFun
   }
 };
 
+/**
+ * Handles `GET /api/analytics/subjects`.
+ */
 const getSubjectBreakdown = async (req: CustomRequest, res: Response, next: NextFunction) => {
   try {
     const data = await analyticsService.getSubjectBreakdown(req.user!._id.toString());

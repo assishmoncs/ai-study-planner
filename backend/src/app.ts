@@ -31,51 +31,9 @@ app.use(
   })
 );
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: 'Too many requests from this IP, please try again after 15 minutes.',
-});
-app.use('/api/', limiter);
-
 app.use(requestLogger);
 
-app.use(express.json({ limit: '100kb' }));
-app.use(express.urlencoded({ extended: false }));
-app.use(sanitizeRequest);
-
-const swaggerOptions: swaggerJsdoc.Options = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'AI Study Planner API',
-      version: '1.0.0',
-      description: 'Backend API for AI-Powered Personalized Study Planner',
-    },
-    servers: [
-      {
-        url: process.env.API_BASE_URL || 'http://localhost:5000/api',
-        description: 'Local development server',
-      },
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
-    },
-  },
-  apis: ['./src/routes/*.ts', './dist/routes/*.js'],
-};
-
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
+// Mount liveness and readiness probes before rate limiting so container orchestrators are never throttled
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
 });
@@ -90,13 +48,60 @@ app.get('/api/ready', (_req: Request, res: Response) => {
   });
 });
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 150,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again after 15 minutes.',
+    code: 'GLOBAL_RATE_LIMITED',
+  },
+});
+app.use('/api/', limiter);
+
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: false }));
+app.use(sanitizeRequest);
+
+const swaggerOptions: swaggerJsdoc.Options = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'AI Study Planner API',
+      version: '1.0.0',
+      description: 'Enterprise-grade Backend API for AI-Powered Personalized Study Planner',
+    },
+    servers: [
+      {
+        url: process.env.API_BASE_URL || 'http://localhost:5000/api',
+        description: 'API server',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+  },
+  apis: ['./src/routes/*.ts', './dist/src/routes/*.js'],
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/study-plans', studyPlanRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
 app.use((_req: Request, res: Response) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+  res.status(404).json({ success: false, message: 'Route not found', code: 'ROUTE_NOT_FOUND' });
 });
 
 app.use(errorHandler);

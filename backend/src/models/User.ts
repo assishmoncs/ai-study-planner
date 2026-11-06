@@ -16,7 +16,7 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/\^\\S+@\\S+\\.\\S+$/, 'Please provide a valid email'],
+      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
     },
     password: {
       type: String,
@@ -27,6 +27,7 @@ const userSchema = new Schema<IUser>(
     avatar: {
       type: String,
       default: '',
+      maxlength: [500, 'Avatar URL cannot exceed 500 characters'],
     },
     preferences: {
       studyHoursPerDay: { type: Number, default: 4, min: 0.5, max: 24 },
@@ -37,7 +38,7 @@ const userSchema = new Schema<IUser>(
       },
       pomodoroLength: { type: Number, default: 25, min: 1, max: 120 },
       breakLength: { type: Number, default: 5, min: 1, max: 60 },
-      timezone: { type: String, default: 'UTC' },
+      timezone: { type: String, default: 'UTC', maxlength: 100 },
     },
     refreshToken: {
       type: String,
