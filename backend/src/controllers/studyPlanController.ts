@@ -137,12 +137,4 @@ const getAISuggestions = async (req: CustomRequest, res: Response, next: NextFun
   }
 };
 
-export {
-  createPlan,
-  getPlans,
-  getPlan,
-  updatePlan,
-  deletePlan,
-  logHours,
-  getAISuggestions,
-};
+export { createPlan, getPlans, getPlan, updatePlan, deletePlan, logHours, getAISuggestions };

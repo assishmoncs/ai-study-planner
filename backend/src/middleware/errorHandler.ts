@@ -77,9 +77,7 @@ const errorHandler = (err: Error, req: CustomRequest, res: Response, _next: Next
   const code = (err as Error & { code?: string }).code;
   const isProd = process.env.NODE_ENV === 'production';
   const message =
-    statusCode === 500 && isProd
-      ? 'Internal server error'
-      : err.message || 'Internal server error';
+    statusCode === 500 && isProd ? 'Internal server error' : err.message || 'Internal server error';
 
   sendError(res, { statusCode, message, code, requestId });
 };
