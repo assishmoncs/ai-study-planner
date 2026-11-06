@@ -35,11 +35,14 @@ export const clearAICache = (): void => {
  */
 export const sanitizePromptInput = (raw: unknown, maxLength = 150): string => {
   if (typeof raw !== 'string') return '';
-  return raw
-    .replace(/[\u0000-\u001F\u007F]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, maxLength);
+  return (
+    raw
+      // eslint-disable-next-line no-control-regex -- Intentionally replace ASCII control characters before normalizing whitespace.
+      .replace(/[\u0000-\u001F\u007F]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, maxLength)
+  );
 };
 
 const clampNumber = (value: unknown, min: number, max: number, fallback: number): number => {
@@ -72,7 +75,11 @@ export const fallbackPlan = ({
     safeLevel === 'advanced'
       ? ['Deep Architecture & Edge Cases', 'Complex Problem Solving', 'Timed Synthesis & Review']
       : safeLevel === 'intermediate'
-        ? ['Core Concept Consolidation', 'Applied Practice & Drills', 'Mock Assessment & Refinement']
+        ? [
+            'Core Concept Consolidation',
+            'Applied Practice & Drills',
+            'Mock Assessment & Refinement',
+          ]
         : ['Foundational Concepts', 'Guided Examples & Practice', 'Active Recall & Summary'];
 
   return {
@@ -234,7 +241,10 @@ const generateStudyPlan = async ({
 
   const client = getClient();
   if (!client) {
-    logger.debug({ subject: cleanSubject }, 'AI client unconfigured; returning fallback study plan');
+    logger.debug(
+      { subject: cleanSubject },
+      'AI client unconfigured; returning fallback study plan'
+    );
     return fb;
   }
 
